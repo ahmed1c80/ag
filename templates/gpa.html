@@ -1,0 +1,119 @@
+{%extends "base.html"%}
+{%block content%}
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <h2>توقع المعدل التراكمي (GPA)</h2>
+<div class="container-fluid" >
+    <div class="row">
+        <div class="col-lg-12"dir="rtl" style="text-align:right">
+		
+	
+
+    <label>عدد الساعات الدراسية:</label>
+    <input type="number" id="hours" step="0.1" parsley-trigger="change" class="form-control" ><br>
+
+    <label>المعدل السابق:</label>
+    <input type="number" id="prev_gpa" step="0.1" parsley-trigger="change" class="form-control" ><br>
+
+    <label>مستوى الصعوبة:</label>
+    <input type="number" id="difficulty" step="0.1" parsley-trigger="change" class="form-control" ><br>
+
+    <label>نسبة الحضور:</label>
+    <input type="number" id="attendance" step="0.1" parsley-trigger="change" class="form-control" ><br>
+
+    <label>التخصص:</label>
+    <input type="number" id="major" step="0.1" parsley-trigger="change" class="form-control" ><br>
+
+    <button onclick="predictGPA()" class="btn btn-primary mr-2">توقع المعدل</button>
+  
+
+ <div class="form-group" id="process" style="display:none;">
+        <div class="progress">
+       <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuemin="0" aria-valuemax="100" style="">
+       </div>
+      </div>
+       </div>
+
+
+  <h3>المعدل المتوقع: <span id="result" >--</span></h3>
+
+    <h3>جميع التوقعات:</h3>
+    <button onclick="loadStudents()" class="btn btn-primary mr-2">عرض جميع الطلاب</button>
+    <ul id="students_list"></ul>
+</div>
+</div>
+</div>
+    <script>
+        function predictGPA() {
+$('.progress-bar').css('width', '0%')    
+	let features = [
+                parseFloat($("#hours").val()),
+                parseFloat($("#prev_gpa").val()),
+                parseFloat($("#difficulty").val()),
+                parseFloat($("#attendance").val()),
+                parseFloat($("#major").val())
+            ];
+
+            $.ajax({
+                url: "/predict",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify({ features: features }),
+				 beforeSend:function()
+     {
+      $('#save').attr('disabled', 'disabled');
+      $('#process').css('display', 'block');
+     },
+                success: function(response) {
+				    var percentage = 0;
+
+      var timer = setInterval(function(){
+       percentage = percentage + 20;
+       progress_bar_process(percentage, timer);
+      }, 10);
+				//alert(JSON.stringify(response));
+                    $("#result").text(response.predicted_gpa);
+                },
+                error: function() {
+                    alert("حدث خطأ أثناء الاتصال بالخادم!");
+                }
+            });
+        }
+
+        function loadStudents() {
+            $.ajax({
+                url: "/students",
+                type: "GET",
+                success: function(response) {
+                    let list = $("#students_list");
+                    list.empty();
+                    response.forEach(student => {
+                        list.append(`<li>${student.student_name} - المعدل المتوقع: ${student.predicted_gpa}</li>`);
+                    });
+                },
+                error: function() {
+                    alert("حدث خطأ أثناء تحميل البيانات!");
+                }
+            });
+        }
+		
+		
+  function progress_bar_process(percentage, timer)
+  {
+   $('.progress-bar').css('width', percentage + '%');
+   if(percentage > 100)
+   {
+    clearInterval(timer);
+    $('#sample_form')[0].reset();
+    $('#process').css('display', 'none');
+    $('.progress-bar').css('width', '0%');
+    $('#save').attr('disabled', false);
+    $('#success_message').html("<div class='alert alert-success'>Data Saved</div>");
+    setTimeout(function(){
+     $('#success_message').html('');
+    }, 5000);
+   }
+  }
+
+ 
+    </script>
+{%endblock%}

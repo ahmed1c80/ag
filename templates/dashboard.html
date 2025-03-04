@@ -1,0 +1,325 @@
+{%extends "base.html"%}
+{%block content%}
+
+<!-- Favicon -->
+        <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            fetch('/api/recommend_courses/{{user.id}}')
+                .then(response => response.json())
+                .then(data => {
+				//alert(JSON.stringify(data));
+                    const recommendations_count = document.getElementById("recommendations-count");
+					recommendations_count.innerHTML=data.recommended_courses.length+"";
+                    const table = document.getElementById("recommendations-table");
+                    table.innerHTML = ""; // تنظيف الجدول القديم
+
+                    data.recommended_courses.forEach(course => {
+					
+                        const row = document.createElement("li");
+						row.setAttribute('class','col-lg-3');
+                        row.innerHTML =`<a href="course/${course.course_id}" class="search-link"><div class="card card-block card-stretch card-height mb-0">
+                                <div class="card-body">
+                                    <div class="bg-warning-light rounded">
+                                        <img src="static/uploads/${course.logo}" class="style-img img-fluid m-auto p-3" alt="image" width="100">
+                                    </div>
+                                    <div class="style-text text-left mt-3">
+                                        <h5 class="mb-1">${course.course_name}</h5>
+                                        <p class="mb-0">${course.reason}</p>
+                                    </div>
+                                </div>
+                            </div></a>`;
+                        table.appendChild(row);
+						//alert(row);
+                    });
+                })
+                .catch(error => console.error("Error fetching recommendations:", error));
+        });
+    </script>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-12">
+		
+		
+		
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+            
+<div class="alert text-white bg-success alert-{{ category }}" role="alert">
+                <div class="iq-alert-text">{{ message }}</div>
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <i class="ri-close-line"></i>
+                </button>
+            </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+		
+        </div>
+        <div class="col-lg-8">
+            <div class="row">
+                <div class="col-lg-4 col-md-4">
+                    <div class="card card-block card-stretch card-height">
+                        <div class="card-body">
+<a href="/update_gpa">                          
+						  <div class="d-flex align-items-center mb-4 card-total-sale">
+                                <div class="icon iq-icon-box-2 bg-info-light">
+                                    <img src="{{ url_for('static', filename='assets/images/product/1.png')}}" class="img-fluid" alt="image">
+                                </div>
+                                <div>
+                                    <p class="mb-2">
+									المعدل التراكمي
+                                    </p>
+                                    <h4>{{ user.gpa}}</h4>
+                                </div>
+                            </div>
+                            </a>
+							
+                            <div class="iq-progress-bar mt-2">
+                                <span class="bg-info iq-progress progress-1" data-percent="85">
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-4">
+                    <div class="card card-block card-stretch card-height">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-4 card-total-sale">
+                                <div class="icon iq-icon-box-2 bg-danger-light">
+                                    <img src="{{ url_for('static', filename='assets/images/product/2.png')}}" class="img-fluid" alt="image">
+                                </div>
+                                <div>
+                                    <p class="mb-2">
+									الدورات
+                                    </p>
+                                    <h4>{{curss }}</h4>
+                                </div>
+                            </div>
+                            <div class="iq-progress-bar mt-2">
+                                <span class="bg-danger iq-progress progress-1" data-percent="70">
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-4">
+                    <div class="card card-block card-stretch card-height">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-4 card-total-sale">
+                                <div class="icon iq-icon-box-2 bg-success-light">
+                                    <img src="{{ url_for('static', filename='assets/images/product/3.png')}}" class="img-fluid" alt="image">
+                                </div>
+                                <div>
+                                    <p class="mb-2">
+                                        التوصيات
+                                    </p>
+                                    <h4 id="recommendations-count">{{recomms}}</h4>
+                                </div>
+                            </div>
+                            <div class="iq-progress-bar mt-2">
+                                <span class="bg-success iq-progress progress-1" data-percent="75">
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6" dir="rtl">
+            <div class="card card-block card-stretch card-height">
+                <div class="card-header d-flex justify-content-between">
+                    <div class="header-title">
+                        <h4 class="card-title" >
+                            نقاط القوة والضعف
+                        </h4>
+                    </div>
+                </div>
+                <div class="card-body">
+
+
+
+<canvas id="weaknessChart"></canvas>
+
+
+
+
+
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6"  dir="rtl">
+            <div class="card card-block card-stretch card-height">
+                <div class="card-header d-flex align-items-center justify-content-between">
+                    <div class="header-title">
+                        <h4 class="card-title">
+                            مدى فهم الطالب للدورات
+                        {{recommend}}
+						</h4>
+                    </div>
+
+                </div>
+                <div class="card-body">
+				
+				
+    <canvas id="understandingChart"></canvas>
+
+    <script>
+        $(document).ready(function() {
+	
+            $.ajax({
+                url: "/get_student_data",
+                method: "GET",
+                success: function(response) {
+                    // رسم مخطط مدى فهم الطالب
+                    const ctx1 = document.getElementById('understandingChart').getContext('2d');
+                    new Chart(ctx1, {
+                        type: 'bar',
+                        data: {
+                            labels: response.understanding.labels,
+                            datasets: [{
+                                label: 'مدى فهم الطالب (%)',
+                                data: response.understanding.values,
+                                backgroundColor: ['#3498db', '#e74c3c', '#f1c40f', '#2ecc71']
+                            }]
+                        },
+                        options: {
+                            scales: { y: { beginAtZero: true, max: 100 } }
+                        }
+                    });
+
+                    // رسم مخطط نقاط الضعف
+                    const ctx2 = document.getElementById('weaknessChart').getContext('2d');
+                    new Chart(ctx2, {
+                        type: 'pie',
+                        data: {
+                            labels: response.weakness.labels,
+                            datasets: [{
+                                data: response.weakness.values,
+                                backgroundColor: ['#e74c3c', '#f1c40f', '#2ecc71']
+                            }]
+                        }
+                    });
+                },
+                error: function() {
+                    alert("فشل في تحميل البيانات!");
+                }
+            });        });
+    </script>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card card-block card-stretch card-height">
+                <div class="card-header d-flex align-items-center justify-content-between">
+                    <div class="header-title">
+                        <h4 class="card-title">
+                           التوصيات 
+                        </h4>
+                    </div>
+                </div>
+		       
+        <div class="card-body">
+				
+				
+                    <ul class="list-unstyled row top-product mb-0" id="recommendations-table">
+		
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card card-transparent card-block card-stretch mb-4">
+                <div class="card-header d-flex align-items-center justify-content-between p-0">
+                    <div class="header-title">
+                        <h4 class="card-title mb-0">
+                            الدورات
+                        </h4>
+                    </div>
+                    <div class="card-header-toolbar d-flex align-items-center">
+                        <div><a href="#" class="btn btn-primary view-btn font-size-14">
+                            عرض الجميع
+                        </a></div>
+                    </div>
+                </div>
+            </div>
+              {%for course in courses%} 
+            <div class="card card-block card-stretch card-height-helf" dir="rtl">
+                <div class="card-body card-item-right">
+                    <div class="d-flex align-items-top">
+                        <div class="bg-warning-light rounded">
+                            <img src="static/uploads/{{course.logo}}" class="style-img img-fluid m-auto" alt="image" width="150">
+                        </div>
+                        <div class="style-text text-left">
+                            <h5 class="mb-2">{{course.course_name}}</h5>
+                            <p class="mb-2">{{course.instructor}}</p>
+                            <p class="mb-0">{{course.description}}</p>
+                            <p class="mb-0">{{course.university}}</p>
+  <div><a href="javascript:void(0);" class="btn btn-primary view-btn font-size-14 join-course-btn" data-course-id="{{course.id}}">
+                            الانظمام 
+                        </a>
+						<div class="spinner-grow" role="status" style="display:none">
+  <span class="sr-only"  aria-hidden="false">Loading...</span>
+</div>
+						</div>						
+                        </div>
+                    </div>
+                </div>
+            </div>
+                  {%endfor%}
+        </div>
+   
+<script>
+    $(document).ready(function () {
+        $(".join-course-btn").click(function () {
+		var btn=$(this).parent('div');
+		$(this).hide();
+		btn.find(".spinner-grow").show();
+            let courseId = $(this).data("course-id");  // جلب معرف الدورة
+            
+            $.ajax({
+                url: "/join_course",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify({ course_id: courseId }),
+                success: function (response) {
+				if(response.S==0){
+		
+		btn.find("a").show();
+		btn.find(".spinner-grow").hide();
+       		
+				}
+                    alert(response.message);  // عرض رسالة النجاح
+                },
+                error: function (xhr, status, error) {
+				
+		btn.find("a").show();
+		btn.find(".spinner-grow").hide();
+                    alert("Error: " + xhr.responseJSON.error);  // عرض رسالة الخطأ
+                }
+            });
+        });
+    });
+</script>
+   </div>
+    <!-- Page end  -->
+</div>
+<!-- AmCharts Core -->
+<script src="https://cdn.amcharts.com/lib/4/core.js"></script>
+<!-- AmCharts Charts -->
+<script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
+<!-- AmCharts Themes (Optional) -->
+<script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
+
+<!-- Chart Custom JavaScript -->
+<script async sr="{{ url_for('static', filename='dash-point/js/core.js') }}"></script>
+<script async sr="{{ url_for('static', filename='dash-point/js/apexcharts.js') }}"></script>
+<!-- Table Treeview JavaScript -->
+<script sr="{{ url_for('static', filename='dash-point/js/table-treeview.js') }}"></script>
+<!-- Chart Custom JavaScript -->
+<script sr="{{ url_for('static', filename='dash-point/js/customizer.js') }}"></script>
+<!-- Chart Custom JavaScript -->
+<script async sr="{{ url_for('static', filename='dash-point/js/chart-custom.js') }}"></script>
+
+{%endblock%}
