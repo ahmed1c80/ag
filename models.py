@@ -7,8 +7,8 @@ from flask_sqlalchemy import SQLAlchemy
 db = SQLAlchemy()  # إنشاء كائن قاعدة البيانات
 
 # Database Connection
-DATABASE_URL = "mysql+pymysql://root:rootroot@localhost/agline"
-engine = create_engine(DATABASE_URL, echo=True)
+#DATABASE_URL = "mysql+pymysql://root:rootroot@localhost/agline"
+#engine = create_engine(DATABASE_URL, echo=True)
 #db = SQLAlchemy()  # إنشاء كائن قاعدة البيانات
 
 #Base = declarative_base()
@@ -72,6 +72,25 @@ class Student(db.Model):
     attendance_rate = db.Column(db.Float)
     major = db.Column(db.Float)
     predicted_gpa = db.Column(db.Float)
+	
+	
+	
+	
+# جدول الدرجات
+class Grade(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=False)
+    grade = db.Column(db.String(2), nullable=False)  # A, B, C, D, F
+    attempts = db.Column(db.Integer, nullable=False, default=1)
+
+# جدول اهتمامات الطالب
+class Preference(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    learning_style = db.Column(db.String(100), nullable=True)  # بصري، سمعي، عملي
+    interests = db.Column(db.Text, nullable=True)
+
 # Create Tables
 #Base.metadata.create_all(engine)
 

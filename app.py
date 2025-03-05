@@ -6,7 +6,7 @@ import numpy as np
 import pymysql
 #import pandas as pd
 # استيراد قاعدة البيانات من الملف الجديد
-from models import db, User, Course, Enrollment, Student
+from models import db, User, Course, Enrollment, Student,Grade,Preference
 # from flask_mysqldb import MySQL
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session
@@ -299,7 +299,7 @@ def join_course():
             return jsonify({"S":0,"error": "لقد قمت بالتسجيل بالفعل في هذه الدورة"}), 400
 
         # تسجيل الطالب في الدورة
-        new_enrollment = Enrollment(user_id=current_user.id, course_id=course_id)
+        new_enrollment = Enrollment(user_id=current_user.id, course_id=course_id,rating=0)
         db.session.add(new_enrollment)
         db.session.commit()
 
@@ -309,13 +309,6 @@ def join_course():
         return jsonify({"S":0,"error": str(e)}), 500
 
 
-# تحميل النموذج المدرب
-#model = keras.models.load_model("gpa_predictor.h5")
-# تحميل النموذج مع تمرير دالة MSE كـ custom object
-model = keras.models.load_model("gpa_predictor.h5", custom_objects={"mse": keras.losses.MeanSquaredError()})
-# تحميل المحول القياسي (Scaler) المستخدم أثناء التدريب
-scaler = joblib.load("scaler.pkl")
-
 @app.route('/gpa')
 def gpa():
 
@@ -324,6 +317,15 @@ def gpa():
 # API لتوقع المعدل التراكمي
 @app.route('/predict', methods=['POST'])
 def predict():
+
+# تحميل النموذج المدرب
+#model = keras.models.load_model("gpa_predictor.h5")
+# تحميل النموذج مع تمرير دالة MSE كـ custom object
+    model = keras.models.load_model("gpa_predictor.h5", custom_objects={"mse": keras.losses.MeanSquaredError()})
+# تحميل المحول القياسي (Scaler) المستخدم أثناء التدريب
+    scaler = joblib.load("scaler.pkl")
+
+
     try:
         data = request.get_json()
         user_id = current_user.id
@@ -391,6 +393,18 @@ def course_profile(course_id):
 
     course, reviews = get_course_details(course_id)
     return render_template('course_profile.html', course=course, reviews=reviews, user=current_user, already_reviewed=already_reviewed)
+
+
+
+#اضافة درجات
+@app.route('/add_grade', methods=['POST'])
+def add_grade():
+    data = request.json
+    new_grade = Grade(user_id=data['user_id'], course_id=data['course_id'], grade=data['grade'], attempts=data.get('attempts', 1))
+    db.session.add(new_grade)
+    db.session.commit()
+    return jsonify({'message': 'Grade added successfully'})
+
 
 # إنشاء الجداول في قاعدة البيانات
 with app.app_context():

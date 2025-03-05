@@ -5,6 +5,9 @@ from models import db, User, Course, Enrollment#, Student
 
 # from scipy.sparse.linalg import svds
 import pymysql
+
+port = 3306  # تأكد من أنه عدد صحيح
+
 def get_db_connection():
     
 	return pymysql.connect(
@@ -70,8 +73,8 @@ def get_course_details(course_id):
 def add_review(course_id, rating):
     # البحث عن المستخدم في قاعدة البيانات
     enr = Enrollment.query.filter_by(course_id=course_id,user_id=current_user.id).first()
-
+    print(enr)
     if enr:
        enr.rating = float(rating)  # تحديث المعدل التراكمي
        db.session.commit()  # حفظ التغييرات
-       flash(f"تم تحديث GPA بنجاح إلى {enr.rating} ✅", "success")
+       #flash(f"تم تحديث GPA بنجاح إلى {enr.rating} ✅", "success")

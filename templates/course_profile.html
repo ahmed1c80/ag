@@ -108,7 +108,7 @@
     </div>
 {{already_reviewed}}
     <!-- إضافة تقييم جديد -->
-    {% if not already_reviewed %}
+    {% if  already_reviewed %}
     <div class="mt-4">
         <h3>📝 أضف تقييمك</h3>
         <form method="POST">
@@ -125,7 +125,51 @@
             <button type="submit" class="btn btn-primary">إضافة التقييم</button>
         </form>
     </div>
+	
+	
+    {% endif %}
+    {% if not already_reviewed %}
+	 <div><a href="javascript:void(0);" class="btn btn-primary view-btn font-size-14 join-course-btn" data-course-id="{{course.id}}">
+                            الانظمام 
+                        </a>
+						<div class="spinner-grow" role="status" style="display:none">
+  <span class="sr-only"  aria-hidden="false">Loading...</span>
+</div>
+</div>
+
     {% endif %}
 </div>
 
+<script>
+    $(document).ready(function () {
+        $(".join-course-btn").click(function () {
+		var btn=$(this).parent('div');
+		$(this).hide();
+		btn.find(".spinner-grow").show();
+            let courseId = $(this).data("course-id");  // جلب معرف الدورة
+            
+            $.ajax({
+                url: "/join_course",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify({ course_id: courseId }),
+                success: function (response) {
+				if(response.S==0){
+		
+		btn.find("a").show();
+		btn.find(".spinner-grow").hide();
+       		
+				}
+                    alert(response.message);  // عرض رسالة النجاح
+                },
+                error: function (xhr, status, error) {
+				
+		btn.find("a").show();
+		btn.find(".spinner-grow").hide();
+                    alert("Error: " + xhr.responseJSON.error);  // عرض رسالة الخطأ
+                }
+            });
+        });
+    });
+</script>
 {%endblock%}
