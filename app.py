@@ -2,7 +2,6 @@ import os
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 import numpy as np
-# from scipy.sparse.linalg import svds
 import pymysql
 #import pandas as pd
 # استيراد قاعدة البيانات من الملف الجديد
@@ -12,18 +11,15 @@ from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session
 from flask_bcrypt import Bcrypt
 from flask_sqlalchemy import SQLAlchemy
-#from recommendation import get_recommendations
-#from sqlalchemy import create_engine
-from svd_main import get_recommend
 import requests	
 from db import add_review,get_course_details,get_db_connection,has_reviewed 
 #✅ استخدام Random Forest لتوقع أداء الطالب في الدورات القادمة
 
 
 
-import tensorflow as tf
-from tensorflow import keras
-from sklearn.preprocessing import StandardScaler
+#import tensorflow as tf
+#from tensorflow import keras
+#from sklearn.preprocessing import StandardScaler
 import joblib  # لحفظ المحول القياسي (Scaler)
 
 import re
@@ -53,12 +49,9 @@ login_manager.login_view = 'login'
 def dashboard():
     user_id = current_user.id
     conn = get_db_connection()
-	
-	
-	
     cursor = conn.cursor()
     cursor.execute("""
-    SELECT courses.*, enrollments.id AS enr_id 
+    SELECT courses.*, enrollments.id AS enr_id
     FROM courses 
     LEFT JOIN enrollments ON courses.id = enrollments.course_id 
     WHERE enrollments.user_id = %s
@@ -129,8 +122,8 @@ def login():
         user = User.query.filter_by(phone=phone).first()
         
         #hashed_password = generate_password_hash(password)
-        print(bcrypt.check_password_hash(user.password_hash, password))
-        print(password)
+        #print(bcrypt.check_password_hash(user.password_hash, password))
+        #print(password)
 		
         if user and bcrypt.check_password_hash(user.password_hash, password):#and check_password_hash(user.password_hash, hashed_password):
             login_user(user)
@@ -209,12 +202,13 @@ def recommend_courses(user_id):
     recommendations = []
     for course in available_courses:
         # تحليل البيانات ومعايير التوصية
-        if user.gpa >= course.gpa_requirement:
+        if user.gpa <= course.gpa_requirement:
             recommendations.append({
                 "course_id": course.id,
                 "course_name": course.course_name,
+                "gpa":course.gpa_requirement,
                 "logo": course.logo,
-                "reason": "Recommended based on GPA and previous courses."
+                "reason": "توصية."
             })
 
     return jsonify({"recommended_courses": recommendations,'gpa':user.gpa})	
@@ -311,9 +305,27 @@ def join_course():
 
 @app.route('/gpa')
 def gpa():
-
     return render_template('gpa.html', user=current_user)
 
+@app.route('/close_course/', methods=['GET', 'POST'])
+def close_course():
+    if request.method=='POST':
+     grade = request.form['grade']
+     id_enr = request.form['id_enr']
+     hours = request.form['hours']
+     existing_enrollment = Enrollment.query.filter_by(id=id_enr).first()
+     if existing_enrollment:
+       existing_enrollment.grade=grade
+       existing_enrollment.hours=hours
+       existing_enrollment.completed=1
+       db.session.commit()  # حفظ التغييرات
+       return jsonify({"S":1,"message": "تم اقفال الدورة بنجاح"}), 200
+    
+     else:
+       return jsonify({"S":0,"message": "فشل في اقفال الدورة"}), 200
+
+    return render_template('close_course.html', user=current_user,id_enr=request.args.get('id_enr'))
+	 
 # API لتوقع المعدل التراكمي
 @app.route('/predict', methods=['POST'])
 def predict():
@@ -396,15 +408,67 @@ def course_profile(course_id):
 
 
 
-#اضافة درجات
-@app.route('/add_grade', methods=['POST'])
-def add_grade():
-    data = request.json
-    new_grade = Grade(user_id=data['user_id'], course_id=data['course_id'], grade=data['grade'], attempts=data.get('attempts', 1))
-    db.session.add(new_grade)
-    db.session.commit()
-    return jsonify({'message': 'Grade added successfully'})
+import numpy as np
+import pandas as pd
+import mysql.connector
+#from scipy.linalg import svd
 
+
+# تحميل بيانات التقييمات وتحليلها
+def load_recommendation_model():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    query = "SELECT user_id, course_id, rating FROM enrollments"
+    cursor.execute(query)
+    data = cursor.fetchall()
+    conn.close()
+
+    # تحويل البيانات إلى مصفوفة
+    df = pd.DataFrame(data, columns=['user_id', 'course_id', 'rating'])
+    ratings_matrix = df.pivot(index='user_id', columns='course_id', values='rating').fillna(0)
+    ratings_np = ratings_matrix.to_numpy()
+
+    U, sigma, Vt = np.linalg.svd(ratings_np, full_matrices=False)
+
+    # تطبيق SVD
+   # U, sigma, Vt = svd(ratings_np, full_matrices=False)
+    sigma_diag = np.diag(sigma)
+
+    # إعادة بناء مصفوفة التنبؤات
+    predictions = np.dot(np.dot(U, sigma_diag), Vt)
+    predicted_ratings = pd.DataFrame(predictions, index=ratings_matrix.index, columns=ratings_matrix.columns)
+
+    return predicted_ratings
+
+# تحميل النموذج عند بدء التطبيق
+predicted_ratings = load_recommendation_model()
+print(predicted_ratings)
+# صفحة عرض التوصيات
+@app.route('/recommendations')
+def recommendations():
+    if current_user.id==0:
+        return "الرجاء تسجيل الدخول", 403
+
+    student_id = current_user.id
+    if student_id not in predicted_ratings.index:
+        return "لا توجد توصيات متاحة لهذا الطالب"
+
+    recommended_courses = predicted_ratings.loc[student_id].sort_values(ascending=False).index.tolist()
+
+    # جلب تفاصيل الدورات من قاعدة البيانات
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    query = "SELECT id, course_name, description FROM courses WHERE id IN (%s)" % ','.join(map(str, recommended_courses[:5]))
+    cursor.execute(query)
+    courses = cursor.fetchall()
+    conn.close()
+
+    return render_template('recommendations.html', courses=courses)
+
+@app.route('/recommendations/<int:student_id>')
+def get_recommendations(student_id):
+    recommended_courses = predicted_ratings.loc[student_id].sort_values(ascending=False).index.tolist()
+    return jsonify({"recommended_courses": recommended_courses})
 
 # إنشاء الجداول في قاعدة البيانات
 with app.app_context():
@@ -412,7 +476,7 @@ with app.app_context():
     print("✅ تم إنشاء الجداول في قاعدة البيانات بنجاح!")
 print(current_user)
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=True)
-	#app.run(debug=False)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=False)
+	#app.run(debug=True)
    
     

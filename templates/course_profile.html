@@ -18,7 +18,7 @@
 	
 	
 	
-    <div class="row px-3">
+    <div class="row px-4">
         <!-- begin: Left Detail Employee -->
         <div class="col-lg-4 card-profile mb-5 h-50">
             <div class="card card-block card-stretch card-height mb-5">
@@ -78,22 +78,14 @@
         {% endif %}
     {% endwith %}
 
-    <!-- بطاقة تفاصيل الدورة -->
-    <div class="card shadow-lg p-4">
-        <h2 class="text-center">{{ course.course_name }}</h2>
-        <p class="text-muted text-center">{{ course.category }}</p>
-        <p><strong>المستوى:</strong> {{ course.difficulty_level }}</p>
-        <p>{{ course.description }}</p>
-        
-        <button class="btn btn-success w-100">✅ إنهاء الدورة</button>
-    </div>
 
     <!-- تقييمات الدورة -->
     <div class="mt-4">
         <h3>📢 تقييمات الطلاب</h3>
         {% for review in reviews %}
+		{% if review.rating>0 %}
         <div class="card mt-2 p-3">
-            <h5>{{ review.student_name }}</h5>
+            <h5>{{ review.full_name }}</h5>
             <p>
                 {% for _ in range(review.rating) %}
                     <i class="fas fa-star text-warning"></i>
@@ -104,9 +96,9 @@
             </p>
             <p>{{ review.comment }}</p>
         </div>
+        {% endif %}
         {% endfor %}
     </div>
-{{already_reviewed}}
     <!-- إضافة تقييم جديد -->
     {% if  already_reviewed %}
     <div class="mt-4">
@@ -115,17 +107,23 @@
             <div class="mb-3">
                 <label class="form-label">التقييم (1-5)</label>
                 <select name="rating" class="form-control" required>
-                    <option value="5">⭐⭐⭐⭐⭐ (ممتاز)</option>
-                    <option value="4">⭐⭐⭐⭐ (جيد جدًا)</option>
-                    <option value="3">⭐⭐⭐ (جيد)</option>
-                    <option value="2">⭐⭐ (متوسط)</option>
-                    <option value="1">⭐ (ضعيف)</option>
+                    <option value="5" {% if already_reviewed.rating==5 %}selected{% endif %}>⭐⭐⭐⭐⭐ (ممتاز)</option>
+                    <option value="4" {% if already_reviewed.rating==4 %}selected{% endif %}>⭐⭐⭐⭐ (جيد جدًا)</option>
+                    <option value="3" {% if  already_reviewed.rating==3 %}selected{% endif %}>⭐⭐⭐ (جيد)</option>
+                    <option value="2" {% if already_reviewed.rating==2 %}selected{% endif %}>⭐⭐ (متوسط)</option>
+                    <option value="1" {% if already_reviewed.rating==1 %}selected{% endif %}>⭐ (ضعيف)</option>
+                    <option value="1" {% if already_reviewed.rating==0 %}selected{% endif %}> (غير مقيم)</option>
                 </select>
             </div>
             <button type="submit" class="btn btn-primary">إضافة التقييم</button>
         </form>
     </div>
-	
+	<hr>
+    <!-- بطاقة تفاصيل الدورة -->
+    <div class="card shadow-lg p-4">
+        
+        <button class="btn btn-danger w-100" id="close_course" id_enr="{{already_reviewed.id}}">✅ إنهاء الدورة</button>
+    </div>
 	
     {% endif %}
     {% if not already_reviewed %}
@@ -158,7 +156,9 @@
 		
 		btn.find("a").show();
 		btn.find(".spinner-grow").hide();
-       		
+				}			if(response.S==1){
+		 location.reload();
+		btn.find(".spinner-grow").hide();
 				}
                     alert(response.message);  // عرض رسالة النجاح
                 },
@@ -171,5 +171,19 @@
             });
         });
     });
+</script>
+
+
+<script type="text/javascript">
+			$(document).ready(function(){
+		$('#close_course').click(function(){
+		var id_enr=$(this).attr('id_enr');
+		try{
+
+			uni_modal("<i class='fa fa-plus'></i>  	اغلاق الدورة ","/close_course/?id_enr="+id_enr,"mid-large")
+}catch(e){
+alert(JSON.stringify(e)+"dd");}
+		})
+		});
 </script>
 {%endblock%}

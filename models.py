@@ -6,13 +6,6 @@ from flask_login import LoginManager, UserMixin, login_user, logout_user, login_
 from flask_sqlalchemy import SQLAlchemy
 db = SQLAlchemy()  # إنشاء كائن قاعدة البيانات
 
-# Database Connection
-#DATABASE_URL = "mysql+pymysql://root:rootroot@localhost/agline"
-#engine = create_engine(DATABASE_URL, echo=True)
-#db = SQLAlchemy()  # إنشاء كائن قاعدة البيانات
-
-#Base = declarative_base()
-
 # Users Table (Updated: Replaced email with phone)
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
@@ -54,9 +47,13 @@ class Enrollment(db.Model):
     id = db.Column(Integer, primary_key=True, autoincrement=True)
     user_id = db.Column(Integer, ForeignKey('users.id', ondelete='CASCADE'))
     course_id = db.Column(Integer, ForeignKey('courses.id', ondelete='CASCADE'))
+    hours = db.Column(Integer, default=0)
     enrollment_date = db.Column(TIMESTAMP, default=datetime.utcnow)
     completed  = db.Column(Integer, default=0)
-    rating = db.Column(DECIMAL(2, 1), nullable=True)  # Rating from 0.0 to 5.0
+    rating = db.Column(Integer, default=0)  # Rating from 0.0 to 5.0
+    grade = db.Column(db.String(2), nullable=True)  # A, B, C, D, F
+    attempts = db.Column(db.Integer, nullable=False, default=1)
+
 
     #user = relationship("User", back_populates="enrollments")
     #course = relationship("Course", back_populates="enrollments")
@@ -90,26 +87,3 @@ class Preference(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     learning_style = db.Column(db.String(100), nullable=True)  # بصري، سمعي، عملي
     interests = db.Column(db.Text, nullable=True)
-
-# Create Tables
-#Base.metadata.create_all(engine)
-
-# Create a session
-#Session = sessionmaker(bind=engine)
-#session = Session()
-'''
-# Example: Add a new user with phone number
-def add_user(name, phone, password_hash, gpa, major):
-    user = User(
-        full_name=name,
-        phone=phone,
-        password_hash=password_hash,
-        gpa=gpa,
-        major=major
-    )
-    #session.add(user)
-    #session.commit()
-    print(f"User {name} added with phone {phone}.")
-'''
-# Example Usage
-# add_user("Alice Doe", "1234567890", "hashed_password", 3.8, "Mathematics")

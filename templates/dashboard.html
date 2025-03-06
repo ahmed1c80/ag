@@ -24,7 +24,7 @@
                                     </div>
                                     <div class="style-text text-left mt-3">
                                         <h5 class="mb-1">${course.course_name}</h5>
-                                        <p class="mb-0">${course.reason}</p>
+                                        <p class="mb-0">${course.reason} ${course.gpa}</p>
                                     </div>
                                 </div>
                             </div></a>`;
@@ -256,9 +256,16 @@
                             <p class="mb-2">{{course.instructor}}</p>
                             <p class="mb-0">{{course.description}}</p>
                             <p class="mb-0">{{course.university}}</p>
-  <div><a href="javascript:void(0);" class="btn btn-primary view-btn font-size-14 join-course-btn" data-course-id="{{course.id}}">
+  <div>
+  {% if course.enr_id>0 %}
+  <a href="/course/{{course.id}}" target="_blank" class="btn btn-info view-btn font-size-14 " data-course-id="{{course.id}}">
+                            عرض 
+                        </a>
+						{% else %}
+  <a href="javascript:void(0);" class="btn btn-primary view-btn font-size-14 join-course-btn" data-course-id="{{course.id}}">
                             الانظمام 
                         </a>
+						{% endif %}
 						<div class="spinner-grow" role="status" style="display:none">
   <span class="sr-only"  aria-hidden="false">Loading...</span>
 </div>

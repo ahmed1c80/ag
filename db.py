@@ -9,7 +9,7 @@ import pymysql
 port = 3306  # تأكد من أنه عدد صحيح
 
 def get_db_connection():
-    
+   
 	return pymysql.connect(
         host='193.203.184.99',
         port=port,
@@ -29,7 +29,7 @@ def get_db_connection():
         database='agline',
         cursorclass=pymysql.cursors.DictCursor
     )
-	'''
+'''
 
 
 
@@ -49,8 +49,6 @@ def has_reviewed(course_id, user_id):
 
 # جلب بيانات الدورة من MySQL
 def get_course_details(course_id):
-    #connection = mysql.connector.connect(**db_config)
-    #cursor = connection.cursor(dictionary=True)
     conn = get_db_connection()
     cursor = conn.cursor()
     

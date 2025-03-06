@@ -72,7 +72,7 @@
                 </li>
 				
 				<li class="">
-                    <a href="{{ url_for('gpa') }}" class="svg-icon">
+                    <a hre="{{ url_for('gpa') }}" id="create_new" class="svg-icon">
                         <svg  class="svg-icon" id="p-dash1" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line>
                         </svg>
@@ -185,7 +185,17 @@
 
 
 
+<script type="text/javascript">
+			$(document).ready(function(){
+		$('#create_new').click(function(){
+		try{
 
+			uni_modal("<i class='fa fa-plus'></i> شاشة جديد ","/gpa","mid-large")
+}catch(e){
+alert(e+"ss");}
+		})
+		});
+</script>
 
         <div class="content-page">
             <div class="container-fluid">
@@ -193,6 +203,143 @@
 {%block content%}{%endblock%}
 
 
+  <div class="modal fade" id="confirm_modal" role='dialog'>
+    <div class="modal-dialog modal-md modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+        <h5 class="modal-title">Confirmation</h5>
+      </div>
+      <div class="modal-body">
+        <div id="delete_content"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" id='confirm' onclick="">موافق</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">اغلاق</button>
+      </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal fade" id="uni_modal" role='dialog'>
+    <div class="modal-dialog modal-md modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+        <h5 class="modal-title"></h5>
+      </div>
+      <div class="modal-body">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" id='submit' onclick="$('#uni_modal form').submit()">حفظ</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">الغاء</button>
+      </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal fade" id="uni_modal_right" role='dialog'>
+    <div class="modal-dialog modal-full-height  modal-md" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+        <h5 class="modal-title"></h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span class="fa fa-arrow-right"></span>
+        </button>
+      </div>
+      <div class="modal-body">
+      </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal fade" id="viewer_modal" role='dialog'>
+    <div class="modal-dialog modal-md" role="document">
+      <div class="modal-content">
+              <button type="button" class="btn-close" data-dismiss="modal"><span class="fa fa-times"></span></button>
+              <img src="" alt="">
+      </div>
+    </div>
+  </div>
+      
+      <!-- /.content-wrapper -->
+     <script>
+   //  start_loader();
+  $(document).ready(function(){
+     window.viewer_modal = function($src = ''){
+    start_loader()
+      var t = $src.split('.')
+      t = t[1]
+      if(t =='mp4'){
+        var view = $("<video src='"+$src+"' controls autoplay></video>")
+      }else{
+        var view = $("<img src='"+$src+"' />")
+      }
+      $('#viewer_modal .modal-content video,#viewer_modal .modal-content img').remove()
+      $('#viewer_modal .modal-content').append(view)
+      $('#viewer_modal').modal({
+              show:true,
+              backdrop:'static',
+              keyboard:false,
+              focus:true
+            })
+            end_loader()  
+
+  }
+    window.uni_modal = function($title = '' , $url='',$size=""){
+	//	alert($url+"");
+      start_loader()
+        $.ajax({
+            url:$url,
+            error:err=>{
+                console.log()
+                alert(JSON.stringify(err)+"An error occured")
+				 $('#uni_modal .modal-title').html("err")
+                    $('#uni_modal .modal-body').html(JSON.stringify(err))
+                    if($size != ''){
+                        $('#uni_modal .modal-dialog').addClass($size+'  modal-dialog-centered')
+                    }else{
+                        $('#uni_modal .modal-dialog').removeAttr("class").addClass("modal-dialog modal-md modal-dialog-centered")
+                    }
+                    $('#uni_modal').modal({
+                      show:true,
+                      backdrop:'static',
+                      keyboard:false,
+                      focus:true
+                    })
+				 
+				 end_loader()
+            },
+            success:function(resp){
+                if(resp){
+					
+					//try{
+                    $('#uni_modal .modal-title').html($title)
+                    $('#uni_modal .modal-body').html(resp)
+                    if($size != ''){
+                        $('#uni_modal .modal-dialog').addClass($size+'  modal-dialog-centered')
+                    }else{
+                        $('#uni_modal .modal-dialog').removeAttr("class").addClass("modal-dialog modal-md modal-dialog-centered")
+                    }
+                    $('#uni_modal').modal({
+                      show:true,
+                      backdrop:'static',
+                      keyboard:false,
+                      focus:true
+                    })
+					//}catch(e){
+						//alert(e+"");
+					//end_loader()	
+					//}
+					
+                    end_loader()
+                }
+            }
+        })
+    }
+    window._conf = function($msg='',$func='',$params = []){
+       $('#confirm_modal #confirm').attr('onclick',$func+"("+$params.join(',')+")")
+       $('#confirm_modal .modal-body').html($msg)
+       $('#confirm_modal').modal('show')
+    }
+  })
+  </script>
+  
 
                     </div>
         </div>
@@ -235,9 +382,9 @@
 
 <script src="admin_panel/js/app.min.js"></script>
 
-    <link href="admin_panel/js_loading/loader.css" rel="stylesheet" />
+    <link href="{{ url_for('static', filename='js_loading/loader.css')}}" rel="stylesheet" />
 
-    <script src="admin_panel/js_loading/loader.js"></script>
+    <script src="{{ url_for('static', filename='js_loading/loader.js')}}"></script>
       
     <!-- Backend Bundle JavaScript -->
     <script src="{{ url_for('static', filename='js/backend-bundle.min.js') }}"></script>
@@ -277,5 +424,10 @@ if ($('body').hasClass('loading')) {
 
 
 </script>
+
+
+
+
+
 </body>
 </html>
