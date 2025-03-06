@@ -13,6 +13,8 @@ from flask_bcrypt import Bcrypt
 from flask_sqlalchemy import SQLAlchemy
 import requests	
 from db import add_review,get_course_details,get_db_connection,has_reviewed 
+from recommend import predicted_ratings
+from api import get_api_coursers
 #✅ استخدام Random Forest لتوقع أداء الطالب في الدورات القادمة
 
 
@@ -98,6 +100,10 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 
+
+@app.route('/get_courses_api')
+def get_courses_api():
+  return get_api_coursers()
 
 @app.route('/get_student_data')
 def get_student_data():
@@ -212,59 +218,7 @@ def recommend_courses(user_id):
             })
 
     return jsonify({"recommended_courses": recommendations,'gpa':user.gpa})	
-
-# ✅ API لاسترجاع الدورات الموصى بها بناءً على المعدل التراكمي
-@app.route('/api/recommend_coursesp', methods=['GET'])
-def recommend_coursesp():
-    if current_user.id==0:
-        return jsonify({"error": "User not logged in"}), 401
-
-    student_id = current_user.id
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    # 🔹 استرجاع معدل الطالب التراكمي
-    cursor.execute("SELECT gpa FROM users WHERE id = %s", (student_id,))
-    student = cursor.fetchone()
-    if not student:
-        return jsonify({"error": "Student not found"}), 404
-
-    student_gpa = student['gpa']
-
-    # 🔹 استرجاع الدورات المناسبة بناءً على المعدل التراكمي
-    cursor.execute("""
-        SELECT *
-        FROM courses
-        WHERE gpa_requirement <= %s
-        ORDER BY gpa_requirement DESC
-    """, (student_gpa,))
-
-    recommendations = cursor.fetchall()
-    cursor.close()
-    conn.close()
-
-    return jsonify(recommendations)
 	
-	
-# ✅ API لجلب الدورات من Udemy أو Coursera
-@app.route('/api/web_courses', methods=['GET'])
-def get_web_courses():
-    query = request.args.get("query", "Linear Algebra")
-    
-    # 🔹 استعلام Udemy API
-    udemy_url = "https://www.udemy.com/api-2.0/courses/"
-    udemy_params = {"search": query, "page_size": 5}
-    udemy_headers = {"Authorization": "Bearer YOUR_UDEMY_API_KEY"}
-
-    udemy_response = requests.get(udemy_url, params=udemy_params, headers=udemy_headers)
-    udemy_courses = udemy_response.json().get("results", []) if udemy_response.status_code == 200 else []
-
-    # 🔹 تجميع النتائج
-    recommendations = [{"title": c["title"], "url": c["url"], "platform": "Udemy"} for c in udemy_courses]
-
-    return jsonify(recommendations)
-
-
 
 
 
@@ -363,25 +317,6 @@ def predict():
     except Exception as e:
         return jsonify({'error': str(e)})
 
-# API لاسترجاع جميع التوقعات
-@app.route('/students', methods=['GET'])
-def get_students():
-    students = Student.query.all()
-    students_data = [
-        {
-            'id': student.id,
-            'user_id': student.user_id,
-            'study_hours': student.study_hours,
-            'previous_gpa': student.previous_gpa,
-            'difficulty_level': student.difficulty_level,
-            'attendance_rate': student.attendance_rate,
-            'major': student.major,
-            'predicted_gpa': float(student.predicted_gpa)
-        }
-        for student in students
-    ]
-    return jsonify(students_data)
-
 
 
    
@@ -408,41 +343,7 @@ def course_profile(course_id):
 
 
 
-import numpy as np
-import pandas as pd
-import mysql.connector
-#from scipy.linalg import svd
-
-
-# تحميل بيانات التقييمات وتحليلها
-def load_recommendation_model():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    query = "SELECT user_id, course_id, rating FROM enrollments"
-    cursor.execute(query)
-    data = cursor.fetchall()
-    conn.close()
-
-    # تحويل البيانات إلى مصفوفة
-    df = pd.DataFrame(data, columns=['user_id', 'course_id', 'rating'])
-    ratings_matrix = df.pivot(index='user_id', columns='course_id', values='rating').fillna(0)
-    ratings_np = ratings_matrix.to_numpy()
-
-    U, sigma, Vt = np.linalg.svd(ratings_np, full_matrices=False)
-
-    # تطبيق SVD
-   # U, sigma, Vt = svd(ratings_np, full_matrices=False)
-    sigma_diag = np.diag(sigma)
-
-    # إعادة بناء مصفوفة التنبؤات
-    predictions = np.dot(np.dot(U, sigma_diag), Vt)
-    predicted_ratings = pd.DataFrame(predictions, index=ratings_matrix.index, columns=ratings_matrix.columns)
-
-    return predicted_ratings
-
-# تحميل النموذج عند بدء التطبيق
-predicted_ratings = load_recommendation_model()
-print(predicted_ratings)
+'''
 # صفحة عرض التوصيات
 @app.route('/recommendations')
 def recommendations():
@@ -464,11 +365,13 @@ def recommendations():
     conn.close()
 
     return render_template('recommendations.html', courses=courses)
-
+'''
 @app.route('/recommendations/<int:student_id>')
 def get_recommendations(student_id):
     recommended_courses = predicted_ratings.loc[student_id].sort_values(ascending=False).index.tolist()
     return jsonify({"recommended_courses": recommended_courses})
+
+
 
 # إنشاء الجداول في قاعدة البيانات
 with app.app_context():
