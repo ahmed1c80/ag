@@ -1,8 +1,8 @@
 import numpy as np
 from db import add_review,get_course_details,get_db_connection,has_reviewed 
 import pandas as pd
-
-import mysql.connector
+import pymysql
+#import mysql.connector
 #from scipy.linalg import svd
 
 
