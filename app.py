@@ -14,7 +14,7 @@ from flask_sqlalchemy import SQLAlchemy
 import requests	
 from db import add_review,get_course_details,get_db_connection,has_reviewed 
 from recommend import predicted_ratings
-from api import get_api_coursers
+#from api import get_api_coursers
 #✅ استخدام Random Forest لتوقع أداء الطالب في الدورات القادمة
 
 
@@ -100,11 +100,11 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 
-
+'''
 @app.route('/get_courses_api')
 def get_courses_api():
   return get_api_coursers()
-
+'''
 @app.route('/get_student_data')
 def get_student_data():
     data = {
