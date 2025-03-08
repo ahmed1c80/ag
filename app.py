@@ -208,7 +208,7 @@ def join_course():
 def gpa():
     return render_template('gpa.html', user=current_user)
 
-@app.route('/close_course/', methods=['GET', 'POST'])
+@app.route('/close_course', methods=['GET', 'POST'])
 def close_course():
     print("close_course")
     print(request)
