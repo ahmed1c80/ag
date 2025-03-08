@@ -47,6 +47,7 @@ login_manager.login_view = 'login'
 @login_required
 def dashboard():
     user_id = current_user.id
+    gpa_data=getgpauser(current_user.id)
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("""
@@ -62,7 +63,7 @@ def dashboard():
     courses=courses,
     recommendation=[],
     #recommend=svd_main,
-     user=current_user,gpa=getgpauser(current_user.id))
+     user=current_user,gpa=gpa_data)
 
 
 # تحديث `gpa` للمستخدم
@@ -209,6 +210,8 @@ def gpa():
 
 @app.route('/close_course/', methods=['GET', 'POST'])
 def close_course():
+    print("close_course")
+    print(request)
     if request.method=='POST':
      grade = request.form['grade']
      id_enr = request.form['id_enr']

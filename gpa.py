@@ -3,10 +3,11 @@ import numpy as np
 from db import add_review,get_course_details,get_db_connection,has_reviewed 
 # الاتصال بقاعدة البيانات
 from inc import grade_to_gpa
-db=get_db_connection();
+
 
 
 def getdata(user_id):
+  db=get_db_connection();
   cursor = db.cursor()  # جلب البيانات كقائمة من الصفوف
   # جلب البيانات
   cursor.execute("""
