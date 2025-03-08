@@ -213,9 +213,10 @@ def close_course():
     print("close_course")
     print(request)
     if request.method=='POST':
-     grade = request.form['grade']
-     id_enr = request.form['id_enr']
-     hours = request.form['hours']
+     data = request.get_json()
+     grade = data.get('grade')
+     id_enr = data.get('id_enr')
+     hours = data.get('hours')
      existing_enrollment = Enrollment.query.filter_by(id=id_enr).first()
      if existing_enrollment:
        existing_enrollment.grade=grade

@@ -9,7 +9,7 @@
     <label>
 	النتيجة
 	</label>
-    <select name="grade" class="form-control">
+    <select name="grade" class="form-control grade">
 	<option value="A+">A+</option>
 	<option value="A">A</option>
 	<option value="B+">B+</option>
@@ -24,7 +24,7 @@
     <label>
 	عدد الساعات المعتمدة :
 	</label>
-    <select name="hours" class="form-control">
+    <select name="hours" class="form-control hours">
 	<option value=""></option>
 	<option value="1">1</option>
 	<option value="2">2</option>
@@ -36,7 +36,7 @@
 	<option value="8">8</option>
 	<option value="10">10</option>
 	</select>
-	<input type="text" value="{{id_enr}}" name="id_enr" style="display:none">
+	<input type="text" value="{{id_enr}}" name="id_enr" class="id_enr" style="display:none">
     
 </form>
 
@@ -48,17 +48,19 @@
 		$('#supplier-form').submit(function(e){
 			e.preventDefault();
             var _this = $(this)
+            var grade=$('.grade').val();
+            var hours=$('.hours').val();
+            var id_enr=$('.id_enr').val();
+            var courseId=$('.courseId').val();
+            var dat=JSON.stringify({ course_id: courseId,hours:hours,id_enr:id_enr ,grade:grade});
+            //alert(dat);
 			// $('.err-msg').remove();
 			start_loader();
 			$.ajax({
 				url:"/close_course",
-				data: new FormData($(this)[0]),
-                cache: false,
-                contentType: false,
-                processData: false,
-                method: 'POST',
-                type: 'POST',
-                dataType: 'json',
+				data: dat,
+                type: "POST",
+                contentType: "application/json",
 				error:err=>{
 					console.log(err);
 					alert(JSON.stringify(err));
