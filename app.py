@@ -69,6 +69,7 @@ def dashboard():
 # تحديث `gpa` للمستخدم
 # تحديث GPA للمستخدم
 @app.route('/update_gpa', methods=['GET', 'POST'])
+@login_required
 def update_gpa():
     if request.method == 'POST':
         try:
@@ -104,6 +105,7 @@ def get_courses_api():
   return get_api_coursers()
 '''
 @app.route('/get_student_data')
+@login_required
 def get_student_data():
     data=getchartdata(current_user.id)
     return jsonify(data)
@@ -144,6 +146,7 @@ def register():
 	
 
 @app.route('/api/recommend_courses/<int:user_id>', methods=['GET'])
+@login_required
 def recommend_courses(user_id):
     user = User.query.get(user_id)
     
@@ -208,8 +211,17 @@ def join_course():
 def gpa():
     return render_template('gpa.html', user=current_user)
 
-@app.route('/close_course', methods=['GET', 'POST'])
+@app.route('/close_course/', methods=['GET'])
+@login_required
 def close_course():
+    print("close_course")
+    print(request)
+    return render_template('close_course.html', user=current_user,id_enr=request.args.get('id_enr'))
+	 
+@app.route('/edit_close_course', methods=[ 'POST'])
+@login_required
+def edit_close_course():
+
     print("close_course")
     print(request)
     if request.method=='POST':
