@@ -1,4 +1,4 @@
-import mysql.connector
+import pymysql
 import numpy as np
 from db import add_review,get_course_details,get_db_connection,has_reviewed 
 # الاتصال بقاعدة البيانات
