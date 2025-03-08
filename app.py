@@ -12,16 +12,13 @@ from flask import Flask, render_template, request, redirect, url_for, flash, jso
 from flask_bcrypt import Bcrypt
 from flask_sqlalchemy import SQLAlchemy
 import requests	
-from db import add_review,get_course_details,get_db_connection,has_reviewed 
+from db import add_review,get_course_details,get_db_connection,has_reviewed,getchartdata
 from recommend import predicted_ratings
-#from api import get_api_coursers
+from auth import user_login ,user_register#,user_logout
+from gpa import getgpauser
 #✅ استخدام Random Forest لتوقع أداء الطالب في الدورات القادمة
 
 
-
-#import tensorflow as tf
-#from tensorflow import keras
-#from sklearn.preprocessing import StandardScaler
 import joblib  # لحفظ المحول القياسي (Scaler)
 
 import re
@@ -65,7 +62,7 @@ def dashboard():
     courses=courses,
     recommendation=[],
     #recommend=svd_main,
-     user=current_user)
+     user=current_user,gpa=getgpauser(current_user.id))
 
 
 # تحديث `gpa` للمستخدم
@@ -107,36 +104,13 @@ def get_courses_api():
 '''
 @app.route('/get_student_data')
 def get_student_data():
-    data = {
-        "understanding": {
-            "labels": ["جبر خطي", "تفاضل وتكامل", "إحصاء", "برمجة"],
-            "values": [0, 0, 0, 0]  # نسبة الفهم لكل دورة
-        },
-        "weakness": {
-            "labels": ["تفاضل وتكامل", "إحصاء", "برمجة"],  # المواد التي بها نقاط ضعف
-            "values": [0, 0, 0]  # نسبة الضعف في كل مادة
-        }
-    }
+    data=getchartdata(current_user.id)
     return jsonify(data)
 	
 	
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.method == 'POST':
-        phone = request.form['phone']
-        password = request.form['password']
-        user = User.query.filter_by(phone=phone).first()
-        
-        #hashed_password = generate_password_hash(password)
-        #print(bcrypt.check_password_hash(user.password_hash, password))
-        #print(password)
-		
-        if user and bcrypt.check_password_hash(user.password_hash, password):#and check_password_hash(user.password_hash, hashed_password):
-            login_user(user)
-            return redirect(url_for('dashboard'))
-			
-            flash('User with this phone already exists!', 'danger')
-    return render_template('login.html', title="Login")
+       return user_login()
 
 @app.route('/logout')
 def logout():
@@ -159,37 +133,11 @@ def recommend(user_id):
 def is_valid_phone(phone):
     return re.fullmatch(r"^\d{9,15}$", phone) is not None
 
+
 # Registration Route
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    if request.method == 'POST':
-        full_name = request.form['full_name']
-        phone = request.form['phone']
-        password = request.form['password']
-        gpa = request.form.get('gpa', type=float)
-        major = request.form['major']
-
-        #if not is_valid_phone(phone):
-            #flash('Invalid phone number! Must be 9-15 digits.', 'danger')
-            #return redirect(url_for('register'))
-
-        existing_user = User.query.filter_by(phone=phone).first()
-        if existing_user:
-            flash('User with this phone already exists!', 'danger')
-            return redirect(url_for('register'))
-        # تشفير كلمة المرور
-        hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
-        #hashed_password = generate_password_hash(password)
-
-        new_user = User(full_name=full_name, phone=phone, password_hash=hashed_password, gpa=gpa, major=major)
-        db.session.add(new_user)
-        db.session.commit()
-
-
-        flash('تم إنشاء الحساب بنجاح! يمكنك تسجيل الدخول الآن.', 'success')
-        return redirect(url_for('login'))
-
-    return render_template('register.html')
+     return   user_register()
 	
 	
 	
@@ -250,9 +198,7 @@ def join_course():
         new_enrollment = Enrollment(user_id=current_user.id, course_id=course_id,rating=0)
         db.session.add(new_enrollment)
         db.session.commit()
-
         return jsonify({"S":1,"message": "تم الانضمام إلى الدورة بنجاح!"}), 200
-
     except Exception as e:
         return jsonify({"S":0,"error": str(e)}), 500
 
@@ -280,42 +226,6 @@ def close_course():
 
     return render_template('close_course.html', user=current_user,id_enr=request.args.get('id_enr'))
 	 
-# API لتوقع المعدل التراكمي
-@app.route('/predict', methods=['POST'])
-def predict():
-
-# تحميل النموذج المدرب
-#model = keras.models.load_model("gpa_predictor.h5")
-# تحميل النموذج مع تمرير دالة MSE كـ custom object
-    model = keras.models.load_model("gpa_predictor.h5", custom_objects={"mse": keras.losses.MeanSquaredError()})
-# تحميل المحول القياسي (Scaler) المستخدم أثناء التدريب
-    scaler = joblib.load("scaler.pkl")
-
-
-    try:
-        data = request.get_json()
-        user_id = current_user.id
-        features = np.array(data['features']).reshape(1, -1)
-        features_scaled = scaler.transform(features)
-        prediction = model.predict(features_scaled)[0][0].clip(0, 5)
-
-        # حفظ البيانات في قاعدة البيانات
-        new_student = Student(
-            user_id=user_id,
-            study_hours=features[0][0],
-            previous_gpa=features[0][1],
-            difficulty_level=features[0][2],
-            attendance_rate=features[0][3],
-            major=features[0][4],
-            predicted_gpa=round(float(prediction), 2)
-        )
-        db.session.add(new_student)
-        db.session.commit()
-
-        return jsonify({'predicted_gpa': round(float(prediction), 2)})
-
-    except Exception as e:
-        return jsonify({'error': str(e)})
 
 
 
@@ -343,35 +253,36 @@ def course_profile(course_id):
 
 
 
-'''
+
 # صفحة عرض التوصيات
-@app.route('/recommendations')
-def recommendations():
-    if current_user.id==0:
+#@app.route('/recommendations')
+@app.route('/recommendations/<int:user_id>')
+def recommendations(user_id):
+       #user_id = current_user.id
+       if user_id==0:
         return "الرجاء تسجيل الدخول", 403
 
-    student_id = current_user.id
-    if student_id not in predicted_ratings.index:
-        return "لا توجد توصيات متاحة لهذا الطالب"
+        
+        if user_id not in predicted_ratings.index:
+           return "لا توجد توصيات متاحة لهذا الطالب"
 
-    recommended_courses = predicted_ratings.loc[student_id].sort_values(ascending=False).index.tolist()
-
+       recommended_courses = predicted_ratings.loc[user_id].sort_values(ascending=False).index.tolist()
     # جلب تفاصيل الدورات من قاعدة البيانات
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    query = "SELECT id, course_name, description FROM courses WHERE id IN (%s)" % ','.join(map(str, recommended_courses[:5]))
-    cursor.execute(query)
-    courses = cursor.fetchall()
-    conn.close()
-
-    return render_template('recommendations.html', courses=courses)
+       conn = get_db_connection()
+       cursor = conn.cursor()
+       query = "SELECT id, course_name, description,logo FROM courses WHERE id IN (%s)" % ','.join(map(str, recommended_courses[:5]))
+       cursor.execute(query)
+       courses = cursor.fetchall()
+       conn.close()
+       return jsonify({"recommended_courses": courses})
+       #return render_template('recommendations.html', courses=courses)
 '''
 @app.route('/recommendations/<int:student_id>')
 def get_recommendations(student_id):
     recommended_courses = predicted_ratings.loc[student_id].sort_values(ascending=False).index.tolist()
     return jsonify({"recommended_courses": recommended_courses})
 
-
+'''
 
 # إنشاء الجداول في قاعدة البيانات
 with app.app_context():
@@ -379,7 +290,7 @@ with app.app_context():
     print("✅ تم إنشاء الجداول في قاعدة البيانات بنجاح!")
 print(current_user)
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=False)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=True)
 	#app.run(debug=True)
    
     

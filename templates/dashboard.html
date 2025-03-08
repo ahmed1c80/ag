@@ -70,7 +70,14 @@
                                     <p class="mb-2">
 									المعدل التراكمي
                                     </p>
-                                    <h4>{{ user.gpa}}</h4>
+                                    <h4>
+{% for inner_list in gpa %}
+{{inner_list[1]}}
+{% endfor %}
+
+                            
+
+                            </h4>
                                 </div>
                             </div>
                             </a>
@@ -184,7 +191,7 @@
                             }]
                         },
                         options: {
-                            scales: { y: { beginAtZero: true, max: 100 } }
+                            scales: { y: { beginAtZero: true, max: 5 } }
                         }
                     });
 
@@ -193,9 +200,9 @@
                     new Chart(ctx2, {
                         type: 'pie',
                         data: {
-                            labels: response.weakness.labels,
+                            labels: response.understanding.labels,
                             datasets: [{
-                                data: response.weakness.values,
+                                data: response.understanding.values,
                                 backgroundColor: ['#e74c3c', '#f1c40f', '#2ecc71']
                             }]
                         }
@@ -313,20 +320,11 @@
     <!-- Page end  -->
 </div>
 <!-- AmCharts Core -->
-<script src="https://cdn.amcharts.com/lib/4/core.js"></script>
+<script sr="https://cdn.amcharts.com/lib/4/core.js"></script>
 <!-- AmCharts Charts -->
-<script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
+<script sr="https://cdn.amcharts.com/lib/4/charts.js"></script>
 <!-- AmCharts Themes (Optional) -->
-<script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
+<script sr="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
 
-<!-- Chart Custom JavaScript -->
-<script async sr="{{ url_for('static', filename='dash-point/js/core.js') }}"></script>
-<script async sr="{{ url_for('static', filename='dash-point/js/apexcharts.js') }}"></script>
-<!-- Table Treeview JavaScript -->
-<script sr="{{ url_for('static', filename='dash-point/js/table-treeview.js') }}"></script>
-<!-- Chart Custom JavaScript -->
-<script sr="{{ url_for('static', filename='dash-point/js/customizer.js') }}"></script>
-<!-- Chart Custom JavaScript -->
-<script async sr="{{ url_for('static', filename='dash-point/js/chart-custom.js') }}"></script>
 
 {%endblock%}

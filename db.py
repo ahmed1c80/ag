@@ -2,7 +2,7 @@ from flask_login import LoginManager, UserMixin, login_user, logout_user, login_
 import numpy as np
 # استيراد قاعدة البيانات من الملف الجديد
 from models import db, User, Course, Enrollment#, Student
-
+import inc as grade_to_gpa
 # from scipy.sparse.linalg import svds
 import pymysql
 
@@ -76,3 +76,47 @@ def add_review(course_id, rating):
        enr.rating = float(rating)  # تحديث المعدل التراكمي
        db.session.commit()  # حفظ التغييرات
        #flash(f"تم تحديث GPA بنجاح إلى {enr.rating} ✅", "success")
+
+
+def getchartdata(user_id):
+  conn = get_db_connection()
+
+  cursor = conn.cursor()
+  # جلب البيانات
+  cursor.execute("""
+    SELECT user_id, course_id, grade, rating, hours ,course_name
+    FROM enrollments JOIN courses ON courses.id = enrollments.course_id  
+    WHERE enrollments.completed = 1 AND enrollments.user_id = %s
+    """, (user_id,))
+  rows = cursor.fetchall()  # البيانات كقائمة من الصفوف
+    # تحويل البيانات إلى قائمة من القواميس
+  columns = ["user_id", "course_id", "grade", "rating", "hours"]
+  data =rows# [dict(zip(columns, row)) for row in rows]
+  grade_map = {
+        'A+': 5.0,
+        'A': 4.75,
+        'B+': 4.5,
+        'B': 4.0,
+        'C+': 3.5,
+        'C': 3.0,
+        'D+': 2.5,
+        'D': 2.0,
+        'F': 1.0
+    }
+  labels = [course['course_name'] for course in data]
+  values = [course['grade'] for course in data]
+  gpa_values = [grade_map.get(grade, 0.0) for grade in values]
+  data = {
+        "understanding": {
+            "labels":labels ,
+            "values": gpa_values  # نسبة الفهم لكل دورة
+        },
+        "weakness": {
+            "labels": ["تفاضل وتكامل", "إحصاء", "برمجة"],  # المواد التي بها نقاط ضعف
+            "values": [0, 0, 0]  # نسبة الضعف في كل مادة
+        }
+    }
+  print(data)
+  return data;
+
+#getchartdata(3)
