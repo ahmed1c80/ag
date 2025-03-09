@@ -330,6 +330,11 @@
               {%for course in coursesex%} 
 {{course}}
   <div class="course">
+                              <a href="/courseedx/{{course.id}}" target="_blank" class="btn btn-info view-btn font-size-14 " data-course-id="{{course.course_id}}">
+
+                            عرض 
+
+                        </a>
                 <h2>{{ course.name }}</h2>
                 <p><strong>معرف الدورة:</strong> {{ course.course_id }}</p>
                 <p><strong>المنظمة:</strong> {{ course.org }}</p>
@@ -341,6 +346,7 @@
                 {% if course.course_video_url %}
                     <div class="video-container">
                         <iframe src="https://www.youtube.com/embed/{{ course.course_video_url.split('v=')[1] }}" allowfullscreen></iframe>
+
                     </div>
                 {% endif %}
             </div>

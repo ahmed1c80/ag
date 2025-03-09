@@ -17,6 +17,7 @@ class User(UserMixin, db.Model):
     gpa = db.Column(DECIMAL(3, 2), nullable=True)
     major = db.Column(String(255), nullable=True)
     created_at = db.Column(TIMESTAMP, default=datetime.utcnow)
+    difficulty_level = db.Column(Enum('Beginner', 'Intermediate', 'Advanced'), nullable=False)
 
     #enrollments = relationship("Enrollment", back_populates="user")
 
@@ -53,6 +54,7 @@ class Enrollment(db.Model):
     rating = db.Column(Integer, default=0)  # Rating from 0.0 to 5.0
     grade = db.Column(db.String(2), nullable=True)  # A, B, C, D, F
     attempts = db.Column(db.Integer, nullable=False, default=1)
+    edx_id=db.Column(db.String(100), nullable=True) 
 
 
     #user = relationship("User", back_populates="enrollments")

@@ -12,15 +12,15 @@ from flask import Flask, render_template, request, redirect, url_for, flash, jso
 from flask_bcrypt import Bcrypt
 from flask_sqlalchemy import SQLAlchemy
 import requests	
-from db import add_review,get_course_details,get_db_connection,has_reviewed,getchartdata
+from db import add_review,get_course_details,get_course_details_edx,get_db_connection,has_reviewed,getchartdata
 from recommend import predicted_ratings
 from auth import user_login ,user_register#,user_logout
 from gpa import getgpauser
 #✅ استخدام Random Forest لتوقع أداء الطالب في الدورات القادمة
-from api import get_api_coursers
+#from api import get_api_coursers
 from edx2 import getallcoursers
 import joblib  # لحفظ المحول القياسي (Scaler)
-
+from edx.edxcourse import getprofilecourseedx
 import re
 app = Flask(__name__)
 
@@ -104,11 +104,11 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 
-
+'''
 @app.route('/get_courses_api')
 def get_courses_api():
   return get_api_coursers()
-
+'''
 @app.route('/get_student_data')
 @login_required
 def get_student_data():
@@ -271,6 +271,30 @@ def course_profile(course_id):
 
     course, reviews = get_course_details(course_id)
     return render_template('course_profile.html', course=course, reviews=reviews, user=current_user, already_reviewed=already_reviewed)
+
+
+
+@app.route('/courseedx/<int:course_id>', methods=['GET', 'POST'])
+def course_profile_edx(course_id):
+    print(f"******course_profile_edx {course_id}")
+    if current_user.id==0:
+        flash("⚠️ يجب تسجيل الدخول لتقييم الدورات!", "warning")
+        return redirect(url_for('login'))
+
+    if request.method == 'POST':
+        rating = int(request.form['rating'])
+        
+        if add_review(course_id,rating):
+            flash("✅ تم إضافة التقييم بنجاح!", "success")
+        else:
+            flash("⚠️ لقد قمت بالفعل بتقييم هذه الدورة!", "danger")
+        
+        return redirect(url_for('course_profile', course_id=course_id))
+
+    course, reviews = get_course_details_edx(course_id)
+    print(course)
+    corse_edx=getprofilecourseedx(course['course_id'])
+    return render_template('profile_edx.html', course=corse_edx, reviews=reviews, user=current_user)
 
 
 

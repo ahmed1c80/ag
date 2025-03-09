@@ -47,6 +47,27 @@ def has_reviewed(course_id, user_id):
     return count# > 0  # إذا كان هناك تقييم، يرجع True
 
 
+
+# جلب بيانات الدورة من MySQLEdx
+def get_course_details_edx(course_id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute("SELECT * FROM coursers_edx WHERE id = %s", (course_id,))
+    course = cursor.fetchone()
+    
+    cursor.execute("""
+        SELECT enrollments.*, users.full_name 
+        FROM enrollments 
+        JOIN users ON enrollments.user_id = users.id 
+        WHERE edx_id = %s
+    """, (course_id,))
+    reviews = cursor.fetchall()
+	
+	
+    conn.close()
+    return course, reviews
+
 # جلب بيانات الدورة من MySQL
 def get_course_details(course_id):
     conn = get_db_connection()
