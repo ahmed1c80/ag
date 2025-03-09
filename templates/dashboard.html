@@ -282,6 +282,107 @@
                 </div>
             </div>
                   {%endfor%}
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  <style>
+                    
+                  
+                  .course {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .course h2 {
+            margin: 0 0 10px;
+        }
+        .course p {
+            margin: 5px 0;
+        }
+        .course img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+        .video-container {
+            position: relative;
+            padding-bottom: 56.25%; /* نسبة العرض إلى الارتفاع (16:9) */
+            height: 0;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+    </style>
+
+              {%for course in coursesex%} 
+{{course}}
+  <div class="course">
+                <h2>{{ course.name }}</h2>
+                <p><strong>معرف الدورة:</strong> {{ course.course_id }}</p>
+                <p><strong>المنظمة:</strong> {{ course.org }}</p>
+                <p><strong>تاريخ البدء:</strong> {{ course.start_display }}</p>
+                <p><strong>الوصف:</strong> {{ course.short_description }}</p>
+                {% if course.banner_image_url %}
+                    <img src="{{ course.banner_image_url }}" alt="صورة البانر">
+                {% endif %}
+                {% if course.course_video_url %}
+                    <div class="video-container">
+                        <iframe src="https://www.youtube.com/embed/{{ course.course_video_url.split('v=')[1] }}" allowfullscreen></iframe>
+                    </div>
+                {% endif %}
+            </div>
+<!--
+            <div class="card card-block card-stretch card-height-helf" dir="rtl">
+                <div class="card-body card-item-right">
+                    <div class="d-flex align-items-top">
+                        <div class="bg-warning-light rounded">
+                            <img src="{{course.banner_image_url}}" class="style-img img-fluid m-auto" alt="image" width="150">
+                        </div>
+                        <div class="style-text text-left">
+                            <h5 class="mb-2">{{course.name}}</h5>
+                            <p class="mb-2">{{course.instructor}}</p>
+                            <p class="mb-0">{{course.short_description}}</p>
+                            <p class="mb-0">{{course.start_display}}</p>
+  <div>
+{% if course.course_video_url %}
+  <a href="{{course.course_video_url}}" target="_blank" class="btn btn-info view-btn font-size-14 " data-course-id="{{course.id}}">
+                            youtube 
+                        </a>
+{% else %}
+  <a href="{{course.blocks_url}}" target="_blank" class="btn btn-info view-btn font-size-14 " data-course-id="{{course.id}}">
+
+                            عرض 
+
+                        </a>
+						{% endif %}
+						</div>						
+                        </div>
+                    </div>
+                </div>
+            </div>-->
+                  {%endfor%}
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
         </div>
    
 <script>

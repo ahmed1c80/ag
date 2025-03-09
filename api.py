@@ -9,7 +9,7 @@ app = Flask(__name__)
 
 def get_api_coursers():
 # استبدل 'your_access_token' بالتوكن الذي حصلت عليه
-       access_token = 'nueLytFReVvnPIaxj8y9dulwSCiYbIYdU0WtHyQra0WwcnTXtx6Ey02KFTHH'
+       access_token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJyaW5teWJ5ZWRudWF3NXBobGlkQ29jRHVkYnlsYk9iRGliSm9kYm9zZ2V0c0ViYWxkNCIsImV4cCI6MTc0MTQ2OTAyNCwiZ3JhbnRfdHlwZSI6ImNsaWVudC1jcmVkZW50aWFscyIsImlhdCI6MTc0MTQ2NTQyNCwiaXNzIjoiaHR0cHM6Ly9jb3Vyc2VzLmVkeC5vcmcvb2F1dGgyIiwicHJlZmVycmVkX3VzZXJuYW1lIjoiYWhtZWQxYzgwIiwic2NvcGVzIjpbInJlYWQiLCJ3cml0ZSIsImVtYWlsIiwicHJvZmlsZSJdLCJ2ZXJzaW9uIjoiMS4yLjAiLCJzdWIiOiI3Nzc1NDBkYmJiMzg2NGE1Nzk0MDhlMzJjNmYyM2I5ZSIsImZpbHRlcnMiOltdLCJpc19yZXN0cmljdGVkIjpmYWxzZSwiZW1haWxfdmVyaWZpZWQiOnRydWUsImVtYWlsIjoiYWhtZWQxYzgwQGdtYWlsLmNvbSIsIm5hbWUiOiJBaG1lZCBGYWdlaCIsImZhbWlseV9uYW1lIjoiRmFnZWgiLCJnaXZlbl9uYW1lIjoiQWhtZWQiLCJhZG1pbmlzdHJhdG9yIjpmYWxzZSwic3VwZXJ1c2VyIjpmYWxzZX0.WzvDnI2G98uBIFjYXM-MIPHph9i2veO7OOhW2UGthKk'
        headers = {
     'Authorization': f'Bearer {access_token}'
        }

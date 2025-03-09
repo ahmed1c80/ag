@@ -5,7 +5,7 @@ import numpy as np
 import pymysql
 #import pandas as pd
 # استيراد قاعدة البيانات من الملف الجديد
-from models import db, User, Course, Enrollment, Student,Grade,Preference
+from models import db, User, Course, Enrollment, Student,Grade,Preference,CoursesEdx
 # from flask_mysqldb import MySQL
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session
@@ -17,8 +17,8 @@ from recommend import predicted_ratings
 from auth import user_login ,user_register#,user_logout
 from gpa import getgpauser
 #✅ استخدام Random Forest لتوقع أداء الطالب في الدورات القادمة
-
-
+from api import get_api_coursers
+from edx2 import getallcoursers
 import joblib  # لحفظ المحول القياسي (Scaler)
 
 import re
@@ -41,6 +41,10 @@ login_manager.login_view = 'login'
 #print(type(PORT))  # يجب أن يكون <class 'int'>
 
 
+@app.route('/getcoursesedx')
+def getcoursesedx():
+    return getallcoursers()
+    return
 
 @app.route('/')
 @app.route('/dashboard')
@@ -48,6 +52,7 @@ login_manager.login_view = 'login'
 def dashboard():
     user_id = current_user.id
     gpa_data=getgpauser(current_user.id)
+    coursesex = CoursesEdx.query.all()
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("""
@@ -62,7 +67,7 @@ def dashboard():
     'dashboard.html',
     courses=courses,
     recommendation=[],
-    #recommend=svd_main,
+    coursesex=coursesex,
      user=current_user,gpa=gpa_data)
 
 
@@ -99,11 +104,11 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 
-'''
+
 @app.route('/get_courses_api')
 def get_courses_api():
   return get_api_coursers()
-'''
+
 @app.route('/get_student_data')
 @login_required
 def get_student_data():
