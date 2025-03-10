@@ -15,9 +15,9 @@ class User(UserMixin, db.Model):
     phone = db.Column(String(15), unique=True, nullable=False)  # Updated field
     password_hash = db.Column(String(255), nullable=False)
     gpa = db.Column(DECIMAL(3, 2), nullable=True)
-    major = db.Column(String(255), nullable=True)
+    major = db.Column(Integer, default=1)
     created_at = db.Column(TIMESTAMP, default=datetime.utcnow)
-    difficulty_level = db.Column(Enum('Beginner', 'Intermediate', 'Advanced'), nullable=False)
+    #difficulty_level = db.Column(Enum('Beginner', 'Intermediate', 'Advanced'), nullable=False)
 
     #enrollments = relationship("Enrollment", back_populates="user")
 

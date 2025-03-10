@@ -13,7 +13,7 @@ from flask_bcrypt import Bcrypt
 from flask_sqlalchemy import SQLAlchemy
 import requests	
 from db import add_review,get_course_details,get_course_details_edx,get_db_connection,has_reviewed,getchartdata
-from recommend import predicted_ratings
+from recommend import predicted_ratings,load_recommendation
 from auth import user_login ,user_register#,user_logout
 from gpa import getgpauser
 #✅ استخدام Random Forest لتوقع أداء الطالب في الدورات القادمة
@@ -129,10 +129,28 @@ def logout():
 #@app.route('/recommend')
 @login_required
 def recommend(user_id):
-    recommendations = get_recommend(user_id)#ations(userid)
-    print(recommendations.json())
+    recommended_course_ids = load_recommendation(user_id)#ations(userid)
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()# استعلام SQL لجلب الدورات الموصى بها بناءً على id
+    # استعلام SQL لجلب الدورات بناءً على المعرفات الموجودة في القائمة
+    query = "SELECT id, course_name, description, logo FROM courses WHERE id IN (%s)"
+# تحويل القائمة إلى سلسلة من القيم باستخدام join
+    ids_placeholder = ', '.join(['%s'] * len(recommended_course_ids))  # تحويل القيم إلى placeholder
+    query = f"SELECT id, course_name, description, logo FROM courses WHERE id IN ({ids_placeholder})"
+    cursor.execute(query, recommended_course_ids)
+
+	#query = "SELECT id, course_name, description, logo FROM courses WHERE id IN (%s)"
+# تحويل قائمة المعرفات إلى سلسلة من القيم باستخدام join
+    #cursor.execute(query, (', '.join(map(str, recommended_course_ids)),))
+
+# جلب النتائج
+    recommended_courses = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return jsonify({"recommended_courses": recommended_courses})
     #return jsonify(recommendations)
-    return render_template('recommend.html', title="Recommendations", recommendations=recommendations)
+   # return render_template('recommend.html', title="Recommendations", recommendations=recommendations)
 
 
 

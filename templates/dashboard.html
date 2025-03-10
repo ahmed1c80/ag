@@ -4,7 +4,8 @@
 <!-- Favicon -->
         <script>
         document.addEventListener("DOMContentLoaded", function() {
-            fetch('/api/recommend_courses/{{user.id}}')
+            //fetch('/api/recommend_courses/{{user.id}}')
+            fetch('recommend/{{user.id}}')
                 .then(response => response.json())
                 .then(data => {
 				//alert(JSON.stringify(data));
