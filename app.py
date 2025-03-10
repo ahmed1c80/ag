@@ -18,7 +18,7 @@ from auth import user_login ,user_register#,user_logout
 from gpa import getgpauser
 #✅ استخدام Random Forest لتوقع أداء الطالب في الدورات القادمة
 #from api import get_api_coursers
-from edx2 import getallcoursers
+from edx.edx2 import getallcoursers
 import joblib  # لحفظ المحول القياسي (Scaler)
 from edx.edxcourse import getprofilecourseedx
 import re
@@ -52,7 +52,7 @@ def getcoursesedx():
 def dashboard():
     user_id = current_user.id
     gpa_data=getgpauser(current_user.id)
-    coursesex = CoursesEdx.query.all()
+   # coursesex = CoursesEdx.query.all()
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("""
@@ -67,29 +67,30 @@ def dashboard():
     'dashboard.html',
     courses=courses,
     recommendation=[],
-    coursesex=coursesex,
+    coursesex=[],#coursesex,
      user=current_user,gpa=gpa_data)
 
 
 # تحديث `gpa` للمستخدم
 # تحديث GPA للمستخدم
-@app.route('/update_gpa', methods=['GET', 'POST'])
+@app.route('/update_user', methods=['GET', 'POST'])
 @login_required
-def update_gpa():
+def update_user():
     if request.method == 'POST':
         try:
             # استقبال البيانات من النموذج أو JSON
             user_id = request.form.get('user_id') or request.json.get('user_id')
             new_gpa = request.form.get('new_gpa') or request.json.get('gpa')
-
+            new_major = request.form.get('new_major') or request.json.get('major')
             # البحث عن المستخدم في قاعدة البيانات
             user = User.query.filter_by(id=user_id).first()
 
             if user:
                 user.gpa = float(new_gpa)  # تحديث المعدل التراكمي
+                user.major =new_major # تحديث المعدل التراكمي
                 db.session.commit()  # حفظ التغييرات
                 flash(f"تم تحديث GPA بنجاح إلى {user.gpa} ✅", "success")
-                return redirect(url_for('update_gpa'))
+                return redirect(url_for('update_user'))
             else:
                 flash("المستخدم غير موجود ❌", "danger")
 
@@ -129,7 +130,7 @@ def logout():
 #@app.route('/recommend')
 @login_required
 def recommend(user_id):
-    recommended_course_ids = load_recommendation(user_id)#ations(userid)
+    recommended_course_ids, recommended_similarity= load_recommendation(user_id)#ations(userid)
     
     conn = get_db_connection()
     cursor = conn.cursor()# استعلام SQL لجلب الدورات الموصى بها بناءً على id
@@ -137,20 +138,21 @@ def recommend(user_id):
     query = "SELECT id, course_name, description, logo FROM courses WHERE id IN (%s)"
 # تحويل القائمة إلى سلسلة من القيم باستخدام join
     ids_placeholder = ', '.join(['%s'] * len(recommended_course_ids))  # تحويل القيم إلى placeholder
-    query = f"SELECT id, course_name, description, logo FROM courses WHERE id IN ({ids_placeholder})"
+    query = f"SELECT id, course_name, description, logo ,difficulty_level,gpa_requirement FROM courses WHERE id IN ({ids_placeholder})"
     cursor.execute(query, recommended_course_ids)
-
-	#query = "SELECT id, course_name, description, logo FROM courses WHERE id IN (%s)"
-# تحويل قائمة المعرفات إلى سلسلة من القيم باستخدام join
-    #cursor.execute(query, (', '.join(map(str, recommended_course_ids)),))
-
 # جلب النتائج
     recommended_courses = cursor.fetchall()
+    x=0
+    for cour in recommended_courses:
+      #current_json = json.loads(cour)  # Convert JSON string to Python dictionary
+      cour['sim'] = f"{recommended_similarity[x]:.2f}"  # Append the new key-value pair
+      #updated_json = json.dumps(current_json)  # Convert back to JSON string
+      #cour.append('sim',recommended_similarity[x])
+      print(recommended_similarity[x])
+      x+=1
     cursor.close()
     conn.close()
-    return jsonify({"recommended_courses": recommended_courses})
-    #return jsonify(recommendations)
-   # return render_template('recommend.html', title="Recommendations", recommendations=recommendations)
+    return jsonify({"recommended_courses": recommended_courses,"recommended_similarity":recommended_similarity})
 
 
 
@@ -244,9 +246,6 @@ def close_course():
 @app.route('/edit_close_course', methods=[ 'POST'])
 @login_required
 def edit_close_course():
-
-    print("close_course")
-    print(request)
     if request.method=='POST':
      data = request.get_json()
      grade = data.get('grade')
@@ -317,7 +316,7 @@ def course_profile_edx(course_id):
 
 
 
-# صفحة عرض التوصيات
+#  صفحة عرض التوصيات حسب rating 
 #@app.route('/recommendations')
 @app.route('/recommendations/<int:user_id>')
 def recommendations(user_id):
@@ -333,19 +332,12 @@ def recommendations(user_id):
     # جلب تفاصيل الدورات من قاعدة البيانات
        conn = get_db_connection()
        cursor = conn.cursor()
-       query = "SELECT id, course_name, description,logo FROM courses WHERE id IN (%s)" % ','.join(map(str, recommended_courses[:5]))
+       query = "SELECT id, course_name, description,logo,difficulty_level,gpa_requirement FROM courses WHERE id IN (%s)" % ','.join(map(str, recommended_courses[:5]))
        cursor.execute(query)
        courses = cursor.fetchall()
        conn.close()
        return jsonify({"recommended_courses": courses})
        #return render_template('recommendations.html', courses=courses)
-'''
-@app.route('/recommendations/<int:student_id>')
-def get_recommendations(student_id):
-    recommended_courses = predicted_ratings.loc[student_id].sort_values(ascending=False).index.tolist()
-    return jsonify({"recommended_courses": recommended_courses})
-
-'''
 
 # إنشاء الجداول في قاعدة البيانات
 with app.app_context():
@@ -353,7 +345,7 @@ with app.app_context():
     print("✅ تم إنشاء الجداول في قاعدة البيانات بنجاح!")
 print(current_user)
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=True)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=False)
 	#app.run(debug=True)
    
     

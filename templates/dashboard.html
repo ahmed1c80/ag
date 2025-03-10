@@ -3,11 +3,33 @@
 
 <!-- Favicon -->
         <script>
+          
+         var  difficulty = [];
+         
+        difficulty['Beginner']= 'مبتدئ';
+        difficulty['Intermediate']='متوسط';
+        difficulty['Advanced']='متقدم';
+        $(document).ready(function(){
+
+            
+
+
+    $('#select_type_rec').change(function(){
+      
+      var ur=$(this).val();
+     // alert(ur);
+      getRecommend(ur);
+    });          });
         document.addEventListener("DOMContentLoaded", function() {
             //fetch('/api/recommend_courses/{{user.id}}')
-            fetch('recommend/{{user.id}}')
+            getRecommend('recommend/{{user.id}}');
+        });
+        function getRecommend(ur){
+          $(".load_recommend").show();
+            fetch(ur)
                 .then(response => response.json())
                 .then(data => {
+                  $(".load_recommend").hide();
 				//alert(JSON.stringify(data));
                     const recommendations_count = document.getElementById("recommendations-count");
 					recommendations_count.innerHTML=data.recommended_courses.length+"";
@@ -15,26 +37,45 @@
                     table.innerHTML = ""; // تنظيف الجدول القديم
 
                     data.recommended_courses.forEach(course => {
-					
+				var difficulty_level=difficulty[course.difficulty_level];
                         const row = document.createElement("li");
 						row.setAttribute('class','col-lg-3');
-                        row.innerHTML =`<a href="course/${course.course_id}" class="search-link"><div class="card card-block card-stretch card-height mb-0">
+                        row.innerHTML =`<div class="card card-block card-stretch card-height mb-0">
                                 <div class="card-body">
                                     <div class="bg-warning-light rounded">
-                                        <img src="static/uploads/${course.logo}" class="style-img img-fluid m-auto p-3" alt="image" width="100">
+                                      <a href="course/${course.id}" class="search-link">  <img src="static/uploads/${course.logo}" class="style-img img-fluid m-auto p-3" alt="image" width="100"></a>
+                                        
                                     </div>
-                                    <div class="style-text text-left mt-3">
+                                    <div class="style-text text-left mt-3" dir="rtl">
                                         <h5 class="mb-1">${course.course_name}</h5>
-                                        <p class="mb-0">${course.reason} ${course.gpa}</p>
+                             
+                                                          <div class="d-fle align-items-right text-right">
+                                                          <b>
+                                      المعدل المطلوب
+                                    </b>    : <span class="mb-0"> ${course.gpa_requirement}</span>
+                                        </div>
+                                  
+                                                                <div class="d-fle align-items-center  text-right">
+                                     <b> 
+                                    نسبة التوصية                     </b> :
+                                    <span class="mb-0">${course.sim} </span>
+                                  </div>
+                                              
+                                                                                                 <div class="d-flx align-items-center text-right">               <b>                   المستوئ المطلوب             </b>     :      <span class="mb-0">${difficulty_level} </span>
+                                     
+                                   </div>
                                     </div>
                                 </div>
-                            </div></a>`;
+                            </div>`;
                         table.appendChild(row);
 						//alert(row);
                     });
                 })
                 .catch(error => console.error("Error fetching recommendations:", error));
-        });
+                //$(".load_recommend").hide();
+                  
+               // }
+}
     </script>
 <div class="container-fluid">
     <div class="row">
@@ -62,7 +103,43 @@
                 <div class="col-lg-4 col-md-4">
                     <div class="card card-block card-stretch card-height">
                         <div class="card-body">
-<a href="/update_gpa">                          
+
+						  <div class="d-flex align-items-center mb-4 card-total-sale">
+                                <div class="icon iq-icon-box-2 bg-info-light">
+                                    <img src="{{ url_for('static', filename='assets/images/product/1.png')}}" class="img-fluid" alt="image">
+                                </div>
+                                <div>
+                                    <p class="mb-2">
+									المعدل التراكمي المتوقع
+                                    </p>
+                                    <h4>
+{% for inner_list in gpa %}
+{{inner_list[1]}}
+{% endfor %}
+
+                            
+
+                            </h4>
+                                </div>
+                            </div>
+                            
+							
+                            <div class="iq-progress-bar mt-2">
+                                <span class="bg-info iq-progress progress-1" data-percent="{% for inner_list in gpa %}
+    {{ inner_list[1] }}
+    {% endfor %}">
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                                <div class="col-lg-4 col-md-4">
+
+                    <div class="card card-block card-stretch card-height">
+
+                        <div class="card-body">
+<a href="/update_user">                          
 						  <div class="d-flex align-items-center mb-4 card-total-sale">
                                 <div class="icon iq-icon-box-2 bg-info-light">
                                     <img src="{{ url_for('static', filename='assets/images/product/1.png')}}" class="img-fluid" alt="image">
@@ -72,9 +149,7 @@
 									المعدل التراكمي
                                     </p>
                                     <h4>
-{% for inner_list in gpa %}
-{{inner_list[1]}}
-{% endfor %}
+{{user.gpa}}
 
                             
 
@@ -90,6 +165,8 @@
                         </div>
                     </div>
                 </div>
+                
+                
                 <div class="col-lg-4 col-md-4">
                     <div class="card card-block card-stretch card-height">
                         <div class="card-body">
@@ -99,13 +176,22 @@
                                 </div>
                                 <div>
                                     <p class="mb-2">
-									الدورات
+									المستوئ
                                     </p>
-                                    <h4>{{curss }}</h4>
+                                    <h4>
+                                      
+{% if user.major == 1 %}
+    مبتدئ
+{% elif user.major == 2 %}
+    متوسط
+{% elif user.major == 3 %}
+    متقدم
+{% endif %}
+</h4>
                                 </div>
                             </div>
                             <div class="iq-progress-bar mt-2">
-                                <span class="bg-danger iq-progress progress-1" data-percent="70">
+                                <span class="bg-danger iq-progress progress-1" data-percent="{(user.major/3)*100}">
                                 </span>
                             </div>
                         </div>
@@ -121,6 +207,8 @@
                                 <div>
                                     <p class="mb-2">
                                         التوصيات
+
+                                        
                                     </p>
                                     <h4 id="recommendations-count">{{recomms}}</h4>
                                 </div>
@@ -225,11 +313,28 @@
                         <h4 class="card-title">
                            التوصيات 
                         </h4>
+                                                               <select id="select_type_rec" >
+
+                              <option value="recommend/{{user.id}}">
+
+                                المعدل والمستوئ
+                              </option>               <option value="recommendations/{{user.id}}">
+
+                                 التقييمات
+
+                              </option>    
+                                       </select>
                     </div>
                 </div>
 		       
         <div class="card-body">
-				
+				<div class="load_recommend" style="display:none">
+				  						<div class="spinner-grow" role="status" >
+
+  <span class="sr-only"  aria-hidden="false">Loading...</span>
+
+</div>
+				</div>
 				
                     <ul class="list-unstyled row top-product mb-0" id="recommendations-table">
 		

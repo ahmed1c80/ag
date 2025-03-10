@@ -13,7 +13,7 @@
         {% endif %}
     {% endwith %}
 
-    <form method="POST" action="{{ url_for('update_gpa') }}" class="card p-4 shadow-sm">
+    <form method="POST" action="{{ url_for('update_user') }}" class="card p-4 shadow-sm">
         <div class="mb-3" style="display:none">
             <label for="user_id" class="form-label">رقم المستخدم (ID):</label>
             <input type="number" id="user_id" name="user_id" class="form-control" required value="{{user.id}}">
@@ -21,9 +21,21 @@
         
         <div class="mb-3">
             <label for="new_gpa" class="form-label">GPA الجديد:</label>
-            <input type="text" id="new_gpa" name="new_gpa" class="form-control" required>
+            <input type="text" id="new_gpa" name="new_gpa" class="form-control" required value="{{user.gpa}}">
         </div>
-        
+                    <div class="mb-3">
+
+                <label class="form-label">
+				المستوى
+				</label>
+				
+    <select name="new_major" class="form-control major">
+	
+	<option value="1" {% if user.major==1 %}selected{% endif %}>مبتدئ</option>
+	<option value="2" {% if user.major==2 %}selected{% endif %}>متوسط</option>
+	<option value="3" {% if user.major==3 %}selected{% endif %}>متقدم</option>
+	</select>
+            </div>
         <button type="submit" class="btn btn-primary">تحديث</button>
     </form>
 </div>
