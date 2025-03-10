@@ -14,3 +14,13 @@ def grade_to_gpa(grade):
         'F': 1.0
     }
     return grade_map.get(grade, 0.0)
+
+# دالة لتحويل الدرجات إلى نقاط
+def difficulty_to_val(diff):
+    difficulty = {
+        'beginner': 1,
+        'intermediate': 2,
+        'advanced': 3
+    }
+    return difficulty.get(diff.lower(), 0)  # إرجاع None إذا لم يكن موجودًا
+
