@@ -90,12 +90,12 @@ def load_recommendation(user_id):
     recommended_course_ids = [course for course, similarity in sorted_recommendations]
 # استخراج جميع معرفات الدورات الموصى بها
     recommended_similarity= [similarity for course, similarity in sorted_recommendations]
-    print(f"sorted_recommendations******** {recommended_course_ids}")
+    #print(f"sorted_recommendations******** {recommended_course_ids}")
     return recommended_course_ids,recommended_similarity
     
 # حساب جيب التمام
 def cosine_similarity(course_vector, student_vector):
-    print(f"****cosine_similarity course_vector{course_vector} student_vector{student_vector}")
+    #print(f"****cosine_similarity course_vector{course_vector} student_vector{student_vector}")
     dot_product = np.dot(course_vector, student_vector)
     norm_course = np.linalg.norm(course_vector)
     norm_student = np.linalg.norm(student_vector)

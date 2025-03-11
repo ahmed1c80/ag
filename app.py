@@ -51,6 +51,11 @@ def getcoursesedx():
 @login_required
 def dashboard():
     user_id = current_user.id
+    user = User.query.filter_by(id=user_id).first()
+    if not user.gpa:
+                user.gpa = 1.0  # تحديث المعدل التراكمي
+                db.session.commit()  # حفظ التغييرات
+    
     gpa_data=getgpauser(current_user.id)
    # coursesex = CoursesEdx.query.all()
     conn = get_db_connection()
@@ -345,7 +350,7 @@ with app.app_context():
     print("✅ تم إنشاء الجداول في قاعدة البيانات بنجاح!")
 print(current_user)
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=False)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=True)
 	#app.run(debug=True)
    
     

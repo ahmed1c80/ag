@@ -137,7 +137,7 @@ def getchartdata(user_id):
             "values": [0, 0, 0]  # نسبة الضعف في كل مادة
         }
     }
-  print(data)
+  #print(data)
   return data;
 
 #getchartdata(3)
