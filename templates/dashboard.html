@@ -139,7 +139,7 @@
                     <div class="card card-block card-stretch card-height">
 
                         <div class="card-body">
-<a href="/update_user">                          
+<a href="javascript:void(0);" id="update_data_user" user_id="{{user.id}}">                          
 						  <div class="d-flex align-items-center mb-4 card-total-sale">
                                 <div class="icon iq-icon-box-2 bg-info-light">
                                     <img src="{{ url_for('static', filename='assets/images/product/1.png')}}" class="img-fluid" alt="image">
@@ -496,6 +496,23 @@
                   
                   
         </div>
+   
+   
+   
+   
+<script type="text/javascript">
+			$(document).ready(function(){
+		$('#update_data_user').click(function(){
+		var user_id=$(this).attr('user_id');
+		try{
+
+			uni_modal("<i class='fa fa-plus'></i>  تحديث البينات  ","/update_user?user_id="+user_id+"","mid-large")
+}catch(e){
+alert(e+"ss");}
+		})
+		});
+</script>
+
    
 <script>
     $(document).ready(function () {
