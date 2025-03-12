@@ -1,109 +1,149 @@
 import numpy as np
-from db import add_review,get_course_details,get_db_connection,has_reviewed 
 import pandas as pd
-from inc import difficulty_to_val
 import pymysql
+from db import   get_db_connection 
+from inc import difficulty_to_val
+from models import db, User, Course, Enrollment
 
-from models import db, User, Course, Enrollment, Student,Grade,Preference,CoursesEdx
-#import mysql.connector
-#from scipy.linalg import svd
-
-
-# تحميل بيانات التقييمات وتحليلها
+# 📌 تحميل بيانات التقييمات وتحليلها باستخدام SVD
 def load_recommendation_model():
+    """
+    تحميل بيانات التقييمات من قاعدة البيانات وتحليلها باستخدام تفكيك القيم المفردة (SVD).
+    """
     conn = get_db_connection()
-    cursor = conn.cursor()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)  # جعل النتائج على شكل قاموس ليسهل التعامل معها
+
+    # 🔍 استعلام لاسترجاع تقييمات المستخدمين للدورات
     query = "SELECT user_id, course_id, rating FROM enrollments"
     cursor.execute(query)
     data = cursor.fetchall()
+    cursor.close()
     conn.close()
 
-    # تحويل البيانات إلى مصفوفة
+    # إذا لم تكن هناك بيانات، نعيد مصفوفة فارغة
+    if not data:
+        print("⚠️ لا توجد بيانات تقييم متاحة!")
+        return pd.DataFrame()
+
+    # 🟢 تحويل البيانات إلى DataFrame
     df = pd.DataFrame(data, columns=['user_id', 'course_id', 'rating'])
+
+    # 🟢 إنشاء مصفوفة المستخدم-الدورة (Pivot Table)
     ratings_matrix = df.pivot(index='user_id', columns='course_id', values='rating').fillna(0)
     ratings_np = ratings_matrix.to_numpy()
 
+    # 🔍 تطبيق SVD لتحليل المصفوفة
     U, sigma, Vt = np.linalg.svd(ratings_np, full_matrices=False)
+    sigma_diag = np.diag(sigma)  # تحويل المصفوفة القطرية إلى مصفوفة كاملة
 
-    # تطبيق SVD
-   # U, sigma, Vt = svd(ratings_np, full_matrices=False)
-    sigma_diag = np.diag(sigma)
-    print(f"*****sigma_diag {sigma_diag}")
-    # إعادة بناء مصفوفة التنبؤات
+    # 🟢 إعادة بناء مصفوفة التوقعات
     predictions = np.dot(np.dot(U, sigma_diag), Vt)
+
+    # 🟢 تحويل المصفوفة إلى DataFrame لمطابقة المستخدمين والدورات
     predicted_ratings = pd.DataFrame(predictions, index=ratings_matrix.index, columns=ratings_matrix.columns)
 
     return predicted_ratings
 
 
+# 📌 حساب التشابه الكوزايني بين متجه الطالب ومتجه الدورة
+def cosine_similarity(course_vector, student_vector):
+    """
+    حساب التشابه بين متجه الطالب ومتجه الدورة باستخدام جيب التمام (Cosine Similarity).
+    """
+    dot_product = np.dot(course_vector, student_vector)
+    norm_course = np.linalg.norm(course_vector)
+    norm_student = np.linalg.norm(student_vector)
 
+    # 🟢 التحقق من عدم القسمة على صفر
+    if norm_course == 0 or norm_student == 0:
+        return 0
+
+    return dot_product / (norm_course * norm_student)
 
 
 
 
 def load_recommendation(user_id):
-
+    """
+    تحميل توصيات الدورات بناءً على بيانات الطالب والتشابه الكوزايني،
+    مع استبعاد الدورات التي سبق تسجيلها.
+    """
     user = User.query.filter_by(id=user_id).first()
+    if not user:
+        print(f"⚠️ المستخدم ID {user_id} غير موجود!")
+        return [], []
+
     conn = get_db_connection()
-    cursor = conn.cursor()
-    #2️⃣ تنفيذ استعلام SQL لاسترداد بيانات الدورات
-    query="SELECT course_name, difficulty_level, id AS course_id, gpa_requirement FROM courses"
-    cursor.execute(query)
-	
-    #data = cursor.fetchall()
-	#3️⃣ تحويل النتائج إلى قاموس يحتوي على المتجهات
-    courses = {} #(course_name, difficulty_level, course_id, gpa_requirement)
-    for row in cursor.fetchall():
-     print(row)
-     course_id = row['course_id']  # اسم الدورة
-     difficulty_level = row['difficulty_level']  # اسم الدورة
-# ✅ تحويل Decimal إلى float قبل الطباعة
-     row['gpa_requirement'] = float(row['gpa_requirement'])
-     #print(f"{course_name} {difficulty_level}")
-     difficulty_level=difficulty_to_val(difficulty_level)
-     vector = np.array([difficulty_level, row['gpa_requirement']])  # [الصعوبة، رقم الدورة، متطلبات GPA]
-     courses[course_id] = vector
-    #for cur in data:
-     #courses[cur.course_name] = np.array([cur.difficulty_level, cur.gpa_requirement, cur.course_id])
-  # إغلاق الاتصال بقاعدة البيانات
+    cursor = conn.cursor(pymysql.cursors.DictCursor)  # نتائج على شكل قاموس
+
+    # 🔍 استعلام لاسترجاع تفاصيل الدورات مع استبعاد الدورات المسجلة مسبقًا
+    query = """
+    SELECT id AS course_id, course_name, difficulty_level, gpa_requirement 
+    FROM courses 
+    WHERE id NOT IN (
+        SELECT course_id FROM enrollments WHERE user_id = %s
+    )
+    """
+    
+    cursor.execute(query, (user_id,))
+    courses_data = cursor.fetchall()
     cursor.close()
     conn.close()
- # 4️⃣ طباعة المتجهات للتحقق
-    #for course, vector in courses.items():
-      #print(f"{course}: {vector}")
-	#conn.close()
-  # تمثيل الطالب كمتجه
-    student = np.array([user.major, float(user.gpa)])
-  # تصنيف الدورات بناءً على التشابه
-    #recommendations = {course: cosine_similarity(vector, student) for course, vector in courses.items()}
-  # عرض التوصيات
-    #sorted_recommendations = sorted(recommendations.items(), key=lambda x: x[1], reverse=True)
-    #for course, similarity in sorted_recommendations:
-     #print(f"{course}: التشابه = {similarity:.2f}")
-    # حساب التوصيات باستخدام التشابه
-    recommendations = {course: cosine_similarity(vector, student) for course, vector in courses.items()}
 
-# ترتيب التوصيات بناءً على التشابه من الأعلى إلى الأدنى
+    if not courses_data:
+        print("⚠️ لا توجد دورات متاحة للتوصية!")
+        return [], []
+
+    # 🟢 تحويل بيانات الدورات إلى قاموس يحتوي على المتجهات
+    courses = {}
+    for row in courses_data:
+        course_id = row['course_id']
+        difficulty_level = difficulty_to_val(row['difficulty_level'])  # تحويل مستوى الصعوبة إلى قيمة عددية
+        gpa_requirement = float(row['gpa_requirement']) if row['gpa_requirement'] is not None else 0.0
+
+        # إنشاء متجه الدورة [الصعوبة، متطلبات GPA]
+        vector = np.array([difficulty_level, gpa_requirement])
+        courses[course_id] = vector
+
+    # 🟢 تمثيل الطالب كمتجه [التخصص، GPA]
+    student_vector = np.array([user.major, float(user.gpa)])
+
+    # 🔍 حساب التشابه الكوزايني لكل دورة
+    recommendations = {
+        course_id: cosine_similarity(vector, student_vector)
+        for course_id, vector in courses.items()
+    }
+
+    # 🟢 ترتيب الدورات بناءً على التشابه من الأعلى إلى الأدنى
     sorted_recommendations = sorted(recommendations.items(), key=lambda x: x[1], reverse=True)
 
-# استخراج جميع معرفات الدورات الموصى بها
-    recommended_course_ids = [course for course, similarity in sorted_recommendations]
-# استخراج جميع معرفات الدورات الموصى بها
-    recommended_similarity= [similarity for course, similarity in sorted_recommendations]
-    #print(f"sorted_recommendations******** {recommended_course_ids}")
-    return recommended_course_ids,recommended_similarity
-    
-# حساب جيب التمام
-def cosine_similarity(course_vector, student_vector):
-    #print(f"****cosine_similarity course_vector{course_vector} student_vector{student_vector}")
-    dot_product = np.dot(course_vector, student_vector)
-    norm_course = np.linalg.norm(course_vector)
-    norm_student = np.linalg.norm(student_vector)
-    return dot_product / (norm_course * norm_student)
-    
-#load_recommendation()
-    
-# تحميل النموذج عند بدء التطبيق
-predicted_ratings = load_recommendation_model()
-print(f"*****predicted_ratings {predicted_ratings}")
+    # 🟢 استخراج جميع معرفات الدورات الموصى بها والتشابه المقابل
+    recommended_course_ids = [course for course, _ in sorted_recommendations]
+    recommended_similarities = [similarity for _, similarity in sorted_recommendations]
 
+    return recommended_course_ids, recommended_similarities
+
+
+
+#استدعاء الدورات المرتبطة بالطالب
+def getcoursersStudent(user_id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+    SELECT courses.*, enrollments.id AS enr_id
+    FROM courses 
+    LEFT JOIN enrollments ON courses.id = enrollments.course_id 
+    WHERE enrollments.user_id = %s
+    """, (user_id,))
+    courses = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return 	courses
+
+
+# ✅ تحميل النموذج عند بدء التطبيق
+predicted_ratings = load_recommendation_model()
+if not predicted_ratings.empty:
+    print(f"🔹 مصفوفة التنبؤات:\n{predicted_ratings}")
+else:
+    print("⚠️ لم يتم إنشاء مصفوفة التنبؤات بسبب نقص البيانات.")

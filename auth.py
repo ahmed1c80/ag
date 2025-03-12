@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash, jso
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from db import add_review,get_course_details,get_db_connection,has_reviewed 
 from flask_bcrypt import Bcrypt
-from models import db, User, Course, Enrollment, Student,Grade,Preference
+from models import db, User, Course, Enrollment
 app = Flask(__name__)
 bcrypt = Bcrypt(app)
 def user_login():

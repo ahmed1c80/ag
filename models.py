@@ -61,36 +61,6 @@ class Enrollment(db.Model):
     #course = relationship("Course", back_populates="enrollments")
 
 
-# تعريف جدول الطلاب في SQLAlchemy
-class Student(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(Integer, ForeignKey('users.id', ondelete='CASCADE'))
-    study_hours = db.Column(db.Float)
-    previous_gpa = db.Column(db.Float)
-    difficulty_level = db.Column(db.Float)
-    attendance_rate = db.Column(db.Float)
-    major = db.Column(db.Float)
-    predicted_gpa = db.Column(db.Float)
-	
-	
-	
-	
-# جدول الدرجات
-class Grade(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=False)
-    grade = db.Column(db.String(2), nullable=False)  # A, B, C, D, F
-    attempts = db.Column(db.Integer, nullable=False, default=1)
-
-# جدول اهتمامات الطالب
-class Preference(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    learning_style = db.Column(db.String(100), nullable=True)  # بصري، سمعي، عملي
-    interests = db.Column(db.Text, nullable=True)
-    
-
 
 # تعريف نموذج Courses
 class CoursesEdx(db.Model):
