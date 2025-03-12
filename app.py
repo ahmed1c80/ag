@@ -254,4 +254,4 @@ if __name__ == '__main__':
         db.create_all()
         print("✅ تم إنشاء الجداول في قاعدة البيانات بنجاح!")
 
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=True)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=False)
