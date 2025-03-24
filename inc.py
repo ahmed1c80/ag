@@ -1,4 +1,4 @@
-
+import re
 
 # دالة لتحويل الدرجات إلى نقاط
 def grade_to_gpa(grade):
@@ -24,3 +24,12 @@ def difficulty_to_val(diff):
     }
     return difficulty.get(diff.lower(), 0)  # إرجاع None إذا لم يكن موجودًا
 
+def to_name_file(title):
+        # Original title
+        #title = "Linear Algebra from Elementary to Advanced | Coursera"
+        # Replace spaces and special characters with underscores
+        filename = re.sub(r'[^\w\-]', '_', title)
+        # Convert to lowercase (optional)
+        filename = filename.lower()
+        # Print the result
+        return filename

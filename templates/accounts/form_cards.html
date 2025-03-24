@@ -1,0 +1,109 @@
+            <label for="identityType">نوع الهوية:</label>
+            <select id="identityType" name="identity_type" required onchange="toggleIdentityInputs(this.value)" class='form-control'>
+                <option value="id_card">بطاقة شخصية</option>
+                <option value="passport">جواز سفر</option>
+            </select>
+
+            <div id="idCardInputs" class="identity-section">   
+                           <label for="idFront">صورة البطاقة (أمامية):</label>
+        
+<div class="image-box" onclick="document.getElementById('idFront').click();">
+      <div id="view_scan_front" class="progress_hidden">
+        
+<div id="loadingIndicatorfront" st="display:none;">
+    
+     <div class="progress my-3" style="height: 10px;width:100%;">
+            <div id="progress-bar-front" class="progress-bar progress-bar-striped progress-bar-animated" style="width: 0;">
+                0%
+            </div>
+        </div>
+    <div class="spinner"></div>
+    <p>جاري تحليل الصورة الامامية ...</p>
+</div></div>
+
+
+    <img id="previewfront" alt="Preview">
+    <span id="placeholderfront">
+        اضغط لرفع الصورة الامامية للهوية
+    </span>
+</div>
+
+      <input type="file" id="idFront" accept="image/*" onchange="previewImageIdFront(event)" name="id_front" style="display:none">
+    
+  
+   
+
+<a  class="invalid-feedback" id="res_front" data-toggle="collapse" href="#collapseExample2" role="button" aria-expanded="false" aria-controls="collapseExample">
+    
+  </a>
+             <div class="collapse " id="collapseExample2">
+  <div class="card card-body res_fro">
+    
+  </div>
+</div>   
+
+
+
+
+
+
+           <label for="idBack">صورة البطاقة (خلفية):</label>
+        
+<div class="image-box" onclick="document.getElementById('idBack').click();">
+
+    <img id="previewback" alt="Preview">
+    <span id="placeholderback">
+        اضغط لرفع الصورة الخلفية للهوية
+    </span>
+</div>
+
+
+     <input type="file" id="idBack" accept="image/*" onchange="previewImageIdBack(event)" name="id_back" style="display:none">
+    
+          </div>
+            
+
+            <div id="passportInputs" class="identity-section hidden">
+            
+                <label for="passportImage">صورة الجواز:</label>
+        
+        
+                
+<div class="image-box" onclick="document.getElementById('passportImage').click();">
+    <div id="view_scan_passport" class="progress_hidden">
+        
+
+<div id="loadingIndicatorpassport" st="display:none;">
+    
+    <div class="progress my-3" style="height: 10px;width:100%;">
+            <div id="progress-bar-pass" class="progress-bar progress-bar-striped progress-bar-animated" style="width: 0;">
+                0%
+            </div>
+        </div>
+    <div class="spinner"></div>
+    <p>جاري تحليل جواز السفر  ...</p>
+</div>
+    </div>
+
+    <img id="previewpassport" alt="Preview">
+    <span id="placeholderpassport">
+        اضغط لرفع صوة لجواز السفر 
+    </span>
+</div>
+     <input type="file" id="passportImage" accept="image/*" onchange="previewImagepassportImage(event)" name="passport_image" style="display:none">
+
+<a  class="invalid-feedback" id="res_passport" data-toggle="collapse" href="#collapseExample" role="button" aria-expanded="false" aria-controls="collapseExample">
+    
+  </a>
+             <div class="collapse " id="collapseExample">
+  <div class="card card-body res_pass">
+    
+  </div>
+</div>   
+                
+                
+                
+
+
+            </div>
+            

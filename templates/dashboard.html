@@ -40,14 +40,21 @@
 				var difficulty_level=difficulty[course.difficulty_level];
                         const row = document.createElement("li");
 						row.setAttribute('class','col-lg-3');
+						
+						var log=`<img src="${course.logo}" onerror="this.src='static/uploads/${course.logo}'" class="style-img img-fluid m-auto p-3" alt="image" width="100">`;
+						
+					if(course.course_url!=null){
+						  log=`<iframe src="https://www.youtube.com/embed/${course.course_url}"  style="width:100%;" title="${course.course_name}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
+						}
                         row.innerHTML =`<div class="card card-block card-stretch card-height mb-0">
                                 <div class="card-body">
                                     <div class="bg-warning-light rounded">
-                                      <a href="course/${course.id}" class="search-link">  <img src="static/uploads/${course.logo}" class="style-img img-fluid m-auto p-3" alt="image" width="100"></a>
+                              
+ ${log}
                                         
                                     </div>
                                     <div class="style-text text-left mt-3" dir="rtl">
-                                        <h5 class="mb-1">${course.course_name}</h5>
+                                                                <a href="course/${course.id}" class="search-link">               <h5 class="mb-1">${course.course_name}</h5></a>
                              
                                                           <div class="d-fle align-items-right text-right">
                                                           <b>
@@ -351,9 +358,10 @@
                         </h4>
                     </div>
                     <div class="card-header-toolbar d-flex align-items-center">
-                        <div><a href="#" class="btn btn-primary view-btn font-size-14">
-                            عرض الجميع
-                        </a></div>
+                      <!--  <div>
+                          <a href="javascript:void(0);" class="btn btn-primary view-btn font-size-14" id="add_coursera">
+                            اضافة كورس 
+                        </a></div>-->
                     </div>
                 </div>
             </div>
@@ -362,7 +370,7 @@
                 <div class="card-body card-item-right">
                     <div class="d-flex align-items-top">
                         <div class="bg-warning-light rounded">
-                            <img src="static/uploads/{{course.logo}}" class="style-img img-fluid m-auto" alt="image" width="150">
+                            <img src="{{course.logo}}" onerror="this.src='static/uploads/{{course.logo}}'" class="style-img img-fluid m-auto" alt="image" width="150">
                         </div>
                         <div class="style-text text-left">
                             <h5 class="mb-2">{{course.course_name}}</h5>
@@ -502,6 +510,17 @@
    
 <script type="text/javascript">
 			$(document).ready(function(){
+			  
+			  $('#add_coursera').click(function(){
+		try{
+		  alert("ss");
+uni_modal("<i class='fa fa-plus'></i>  new coursera   ","/add_coursera","mid-large")
+}catch(e){
+alert(e+"ss");
+  
+}
+		});
+		
 		$('#update_data_user').click(function(){
 		var user_id=$(this).attr('user_id');
 		try{

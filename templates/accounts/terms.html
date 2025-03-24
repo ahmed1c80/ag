@@ -1,0 +1,182 @@
+
+<div class="form-group">
+    
+
+                  <label class="form-check-label text-secondary" for="iAgree">
+                    اوافق على جميع الاحكام والشروط
+                                    
+                                     </label>
+                   
+  <input clas="form-check-input" type="checkbox" value="" name="iagree" id="iAgree" required>
+</div>
+                     <a  class="link-primary text-decoration-none"  class="invalid-feedback" id="res_front" data-toggle="collapse" href="#terms" role="button" aria-expanded="false" aria-controls="collapseExample">
+                          الاحكام والشروط
+                     </a>
+
+                <br>
+<div class="collapse " id="terms">
+  <div class="card card-body ">
+<div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#accordionExample">
+      <div class="accordion-body" dir="rtl">
+<strong>
+    
+
+أتفقت الشـركة والعميل على اعتبار كشـف الحسـاب بما في ذلك العمليات التي تتم عن طريق وسـائل الإتصال الإلكترونية صـحيحة حكما ونهائيا في مواجهة العميل بأنه قام بإجراء العملية فعلا وعلى اعتبارها مصـدقة واكيده وبينه وملزمة ما لم يصـل الشركة اعتراض خطي من قبل العميل خلال مدة أقصاها ) خمسة عشر يوما ( من تاريخ اصدار الكشف مبينا فيه رقم وبيانات العملية المعترض عليه . 
+</strong>
+<hr>
+<strong>
+- اتفقت الشــــركة والعميل على قيد أي رســــوم او عمولات للحوالات والقابلة للتعديل من وقت اخر بحســــب الظروف التي تستجد على ذلك والتي تعتبر مكملة للشروط واالحكام . -
+
+</strong>
+<hr>
+<strong>
+ يسـري كلما ورد في هذه الشـروط والاحكام وعلى كل ما لم يرد بشـأنه نصـوص الاحكام والشـروط العامة الواردة في قوانين وتشريعات الجمهورية اليمنية أو منشورات البنك المركزي اليمني المتضمنة لذلك وتعتبر مكملة لهذه الشروط والاحكام
+</strong>
+</div></div>
+
+
+
+</div>
+              </div>
+              
+               <br>
+               <br>  <br>
+               <!--
+               
+               <!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تحميل الصورة</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>تحميل الصورة لاستخراج النص</h1>
+    <input type="file" id="imageInput" accept="image/*">
+    <button id="uploadButton">تحميل واستخراج النص</button>
+
+    <h2>النص المستخرج:</h2>
+    <pre id="outputText"></pre>
+
+    <script>
+        $(document).ready(function() {
+            $('#uploadButton').click(function() {
+                const file = $('#imageInput')[0].files[0];
+                if (!file) {
+                    alert('يرجى اختيار صورة أولاً!');
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const image = event.target.result; // الصورة كـ base64
+
+                    // إرسال الصورة باستخدام AJAX
+                    $.ajax({
+                        url: '/upload',
+                        method: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({ image: image }),
+                        success: function(response) {
+                            $('#outputText').text(response.text);
+                        },
+                        error: function(xhr, status, error) {
+                            alert('حدث خطأ أثناء معالجة الصورة: ' + error);
+                        }
+                    });
+                };
+                reader.readAsDataURL(file); // تحويل الصورة إلى base64
+            });
+        });
+    </script>
+</body>
+</html>
+
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تحميل الصورة</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        #progressBar {
+            width: 100%;
+            height: 20px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>تحميل الصورة لاستخراج النص</h1>
+    <input type="file" id="imageInput" accept="image/*">
+    <button id="uploadButton">تحميل واستخراج النص</button>
+
+    <!-- شريط التقدم -->
+    <progress id="progressBar" value="0" max="100" hidden></progress>
+
+    <h2>النص المستخرج:</h2>
+    <pre id="outputText"></pre>
+
+    <script>
+        $(document).ready(function() {
+            $('#uploadButton').click(function() {
+                const file = $('#imageInput')[0].files[0];
+                if (!file) {
+                    alert('يرجى اختيار صورة أولاً!');
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const image = event.target.result; // الصورة كـ base64
+
+                    // إنشاء كائن XMLHttpRequest
+                    const xhr = new XMLHttpRequest();
+
+                    // إعداد طلب AJAX
+                    xhr.open('POST', '/upload', true);
+                    xhr.setRequestHeader('Content-Type', 'application/json');
+
+                    // تتبع تقدم التحميل
+                    xhr.upload.onprogress = function(event) {
+                        if (event.lengthComputable) {
+                            const percentComplete = (event.loaded / event.total) * 100;
+                            $('#progressBar').val(percentComplete).text(percentComplete + '%');
+                        }
+                    };
+
+                    // عند اكتمال التحميل
+                    xhr.onload = function() {
+                        if (xhr.status === 200) {
+                            const response = JSON.parse(xhr.responseText);
+                            $('#outputText').text(response.text);
+                        } else {
+                            alert('حدث خطأ أثناء معالجة الصورة: ' + xhr.statusText);
+                        }
+                        $('#progressBar').hide(); // إخفاء شريط التقدم بعد الانتهاء
+                    };
+
+                    // عند حدوث خطأ
+                    xhr.onerror = function() {
+                        alert('حدث خطأ أثناء الاتصال بالخادم.');
+                        $('#progressBar').hide();
+                    };
+
+                    // إرسال البيانات
+                    xhr.send(JSON.stringify({ image: image }));
+
+                    // إظهار شريط التقدم
+                    $('#progressBar').show();
+                };
+                reader.readAsDataURL(file); // تحويل الصورة إلى base64
+            });
+        });
+    </script>
+</body>
+</html>
+
+
+
+-->

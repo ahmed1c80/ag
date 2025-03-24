@@ -1,0 +1,124 @@
+
+<div id="cameraSection" class="camera-section">
+    <label>التقاط صورة شخصية:</label>
+
+    <video id="cameraStream" autoplay playsinline poster="uploads/web-camera-128.png"></video>
+    <canvas id="cameraCanvas" width="200" height="200" class="hidden"></canvas>
+    <button type="button" class="btn btn-sm btn-info" id="captureButton">التقاط الصورة</button>
+    <button type="button" id="retakeButton" clas="hidden" class="btn btn-sm btn-info hidden" >إعادة الالتقاط</button>
+    <input type="hidden" id="profilePhotoData" name="profile_photo" required>
+</div>
+
+
+<script>
+    const video = document.getElementById('cameraStream');
+        const canvas = document.getElementById('cameraCanvas');
+        const context = canvas.getContext('2d');
+
+
+let stream2; // لتخزين الكاميرا المفتوحة
+var cameraSection=document.getElementById('cameraSection');
+cameraSection.addEventListener("click", function () {
+    //const video = document.getElementById("cameraStream");
+    const canvas = document.getElementById("cameraCanvas");
+   // const camerimg = document.getElementById("camerimg");
+    const captureButton = document.getElementById("captureButton");
+    const retakeButton = document.getElementById("retakeButton");
+    const profilePhotoData = document.getElementById("profilePhotoData");
+
+    // الحصول على إذن الوصول إلى الكاميرا
+    navigator.mediaDevices.getUserMedia({ video: true })
+        .then((stream) => {
+            stream2=stream;
+         //   video.classList.remove("hidden");
+            video.srcObject = stream;
+        //    camerimg.classList.add("hidden");
+        })
+        .catch((err) => {
+            alert("لا يمكن الوصول إلى الكاميرا: " + err.message);
+        });
+
+    // عند النقر على زر الالتقاط
+    captureButton.addEventListener("click", function () {
+       // const context = canvas.getContext("2d");
+       canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+     //   getScan(video);
+
+        // رسم الصورة من الفيديو إلى الكانفاس
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        // إخفاء الفيديو وإظهار الصورة
+        video.classList.add("hidden");
+        canvas.classList.remove("hidden");
+
+        // عرض زر إعادة الالتقاط
+        captureButton.classList.add("hidden");
+        retakeButton.classList.remove("hidden");
+
+        // تخزين الصورة بقاعدة64
+        profilePhotoData.value = canvas.toDataURL("image/png");
+      //  if (stream) {
+        // إيقاف جميع مسارات الفيديو
+      const tracks = stream2.getTracks();
+      //  tracks.forEach((track) => track.stop());
+     // loadface();
+stopCamera();
+        // إزالة الفيديو من العنصر
+      //  video.srcObject = null;
+      //  }
+        
+        
+    });
+
+    // عند النقر على زر إعادة الالتقاط
+    retakeButton.addEventListener("click", function () {
+        video.classList.remove("hidden");
+        canvas.classList.add("hidden");
+
+        captureButton.classList.remove("hidden");
+        retakeButton.classList.add("hidden");
+    });
+});
+/*
+
+function loadface(){
+  try{
+    const displaySize = { width: canvas.width, height: canvas.height };
+            faceapi.matchDimensions(canvas, displaySize);
+
+            const detections = await faceapi.detectAllFaces(image).withFaceLandmarks();
+
+            const resizedDetections = faceapi.resizeResults(detections, displaySize);
+
+            faceapi.draw.drawDetections(canvas, resizedDetections);
+            faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
+}catch(e){
+    alert(e+"");
+}
+}*/
+function stopCamera() {
+   // const stream = video.srcObject;
+   // const tracks = stream.getTracks();
+  //  tracks.forEach(track => track.stop());
+    //video.srcObject = null;
+}
+
+    /*    function loadModels() {
+                try{
+            // تحميل النماذج
+             faceapi.nets.ssdMobilenetv1.loadFromUri('/models'); // كشف الوجه
+             faceapi.nets.faceLandmark68Net.loadFromUri('/models'); // ملامح الوجه
+            }catch(e){
+              alert(e+"");
+           }
+        }*/
+    
+
+        // تحميل النماذج وتشغيل الكاميرا
+  //    loadModels().then(() => {
+           /* startCamera().then(() => {
+                detectFaces();
+            });*/
+      //  });
+</script>

@@ -9,9 +9,7 @@ from db import add_review, get_course_details, get_db_connection, has_reviewed, 
 from recommend import predicted_ratings, load_recommendation, getcoursersStudent
 from auth import user_login, user_register
 from gpa import getgpauser
-from edx.edx2 import getallcoursers
-from edx.edxcourse import getprofilecourseedx
-import numpy as np
+
 import re
 import pymysql
 
@@ -55,7 +53,6 @@ def dashboard():
     gpa_data = getgpauser(user_id)
 
     return render_template('dashboard.html', courses=courses, recommendation=[], coursesex=[], user=current_user, gpa=gpa_data)
-
 
 
 
@@ -122,7 +119,7 @@ def recommend(user_id):
     
     # استبعاد الدورات التي سجل فيها المستخدم
     query = f"""
-        SELECT id, course_name, description, logo, difficulty_level, gpa_requirement 
+        SELECT id, course_name, description, logo, difficulty_level, gpa_requirement ,course_url
         FROM courses 
         WHERE id IN ({','.join(['%s'] * len(recommended_course_ids))})
     """
@@ -254,4 +251,4 @@ if __name__ == '__main__':
         db.create_all()
         print("✅ تم إنشاء الجداول في قاعدة البيانات بنجاح!")
 
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=False)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=True)
