@@ -6,7 +6,7 @@ from flask_login import LoginManager, UserMixin, login_user, logout_user, login_
 from flask_bcrypt import Bcrypt
 from models import db, User, Course, Enrollment, CoursesEdx
 from db import add_review, get_course_details, get_db_connection, has_reviewed, getchartdata
-from recommend import predicted_ratings, load_recommendation, getcoursersStudent
+from recommend import predicted_ratings, load_recommendation, getcoursersStudent,get_course_recommendations
 from auth import user_login, user_register
 from gpa import getgpauser
 
@@ -163,6 +163,7 @@ def join_course():
 
 # ========================== 6️⃣ تقييم الدورات ==========================
 @app.route('/course/<int:course_id>', methods=['GET', 'POST'])
+@login_required
 def course_profile(course_id):
     """عرض معلومات الدورة وإمكانية تقييمها"""
     if current_user.id == 0:
@@ -180,6 +181,7 @@ def course_profile(course_id):
         return redirect(url_for('course_profile', course_id=course_id))
 
     course, reviews = get_course_details(course_id)
+    
     return render_template('course_profile.html', course=course, reviews=reviews, user=current_user, already_reviewed=already_reviewed)
 
 
@@ -245,6 +247,90 @@ def recommendations(user_id):
        return jsonify({"recommended_courses": courses})
 
 
+
+# API لاستقبال `id` الدورة وإرجاع التوصيات
+
+@app.route('/recommendations_course/<int:course_id>', methods=['GET'])
+def recommendations_course(course_id):
+    recs = get_course_recommendations(course_id)
+    return jsonify(recs)
+
+
+
+#عرض جميع الدورات
+@app.route('/view_courses')
+@login_required
+def view_courses():
+    courses = Course.query.all()
+    return render_template('view_courses.html', courses=courses,user=current_user)
+    
+    
+    
+    
+
+
+@app.route('/add', methods=['GET', 'POST'])
+@login_required
+def add_course():
+    if request.method == 'POST':
+        course = Course(logo="def.jpg",
+            course_name=request.form['course_name'],
+            course_code=request.form['course_code'],
+            description=request.form['description'],
+            instructor=request.form['instructor'],
+            credits=int(request.form['credits']),
+            university=request.form['university'],
+            difficulty_level=request.form['difficulty_level'],
+            prerequisites=request.form['prerequisites'],
+            gpa_requirement=float(request.form['gpa_requirement']) if request.form['gpa_requirement'] else None,
+            language=request.form['language'],
+            course_link=request.form['course_link'],
+            course_url=request.form['course_url'],
+            category=request.form['category']
+        )
+        db.session.add(course)
+        db.session.commit()
+        flash("Course added successfully!", "success")
+        return redirect(url_for('view_courses'))
+
+    return render_template('add_course.html')
+
+@app.route('/update/<int:id>', methods=['GET', 'POST'])
+@login_required
+def update_course(id):
+    course = Course.query.get_or_404(id)
+    if request.method == 'POST':
+        course.course_name = request.form['course_name']
+        course.course_code = request.form['course_code']
+        course.description = request.form['description']
+        course.instructor = request.form['instructor']
+        course.credits = int(request.form['credits'])
+        course.university = request.form['university']
+        course.difficulty_level = request.form['difficulty_level']
+        course.prerequisites = request.form['prerequisites']
+        course.gpa_requirement = float(request.form['gpa_requirement']) if request.form['gpa_requirement'] else None
+        course.language = request.form['language']
+        course.course_link = request.form['course_link']
+        course.category = request.form['category']
+        course.course_url=request.form['course_url'],
+        db.session.commit()
+        flash("Course updated successfully!", "success")
+        return redirect(url_for('view_courses'))
+
+    return render_template('update_course.html', course=course)
+
+@app.route('/delete/<int:id>')
+@login_required
+def delete_course(id):
+    course = Course.query.get_or_404(id)
+    db.session.delete(course)
+    db.session.commit()
+    flash("Course deleted successfully!", "danger")
+    return redirect(url_for('index'))
+
+
+
+    
 # ========================== 7️⃣ تشغيل التطبيق ==========================
 if __name__ == '__main__':
     with app.app_context():

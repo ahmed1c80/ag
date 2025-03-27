@@ -1,0 +1,53 @@
+{%extends "base.html"%}
+
+{%block content%}
+   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    
+    
+
+
+
+<div class="container mt-4">
+
+    <h2 class="text-center">All Courses</h2>
+    <a href="{{ url_for('add_course') }}" class="btn btn-primary mb-3">Add New Course</a>
+
+    <table class="table table-bordered">
+        <thead class="table-dark">
+            <tr>
+
+                <th>ID</th>
+                <th>Name</th>
+                <th>Code</th>
+                <th>Instructor</th>
+                <th>Credits</th>
+                <th>Difficulty</th>
+                <th>Language</th>
+                <th>course_link</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for course in courses %}
+            <tr>
+                <td>{{ course.id }}</td>
+                <td>{{ course.course_name }}</td>
+                <td>{{ course.course_code }}</td>
+                <td>{{ course.instructor }}</td>
+                <td>{{ course.credits }}</td>
+                <td>{{ course.difficulty_level }}</td>
+                <td>{{ course.language }}</td>
+                              <td>{{ course.course_link }}</td>
+                <td>
+                    <a href="{{ url_for('update_course', id=course.id) }}" class="btn btn-warning btn-sm">Edit</a>
+                    <a href="{{ url_for('delete_course', id=course.id) }}" style="display:none"class="btn btn-danger btn-sm">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+
+
+{%endblock%}

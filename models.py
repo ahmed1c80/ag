@@ -38,6 +38,9 @@ class Course(db.Model):
     gpa_requirement = db.Column(DECIMAL(3, 2), nullable=True)
     language = db.Column(Enum('English', 'Arabic', 'Other'), nullable=False, default='English')
     created_at = db.Column(TIMESTAMP, default=datetime.utcnow)
+    course_link = db.Column(Text,nullable=True)
+    category = db.Column(Text,nullable=True)
+    course_url = db.Column(Text,nullable=True)
 
     #enrollments = relationship("Enrollment", back_populates="course")
 

@@ -46,7 +46,7 @@ def load_recommendation_model():
 
 
 # 📌 حساب التشابه الكوزايني بين متجه الطالب ومتجه الدورة
-def cosine_similarity(course_vector, student_vector):
+def cosine_similarity2(course_vector, student_vector):
     """
     حساب التشابه بين متجه الطالب ومتجه الدورة باستخدام جيب التمام (Cosine Similarity).
     """
@@ -60,7 +60,23 @@ def cosine_similarity(course_vector, student_vector):
 
     return dot_product / (norm_course * norm_student)
 
+# 📌 حساب التشابه الكوزايني بين متجه الطالب ومتجه الدورة (معدل للنسبة المئوية)
+def cosine_similarity(course_vector, student_vector):
+    """
+    حساب التشابه بين متجه الطالب ومتجه الدورة باستخدام جيب التمام (Cosine Similarity)،
+    مع تحويل النتيجة إلى نسبة مئوية (0% - 100%).
+    """
+    dot_product = np.dot(course_vector, student_vector)
+    norm_course = np.linalg.norm(course_vector)
+    norm_student = np.linalg.norm(student_vector)
 
+    if norm_course == 0 or norm_student == 0:
+        return 0.0  # تجنب القسمة على صفر
+    
+    similarity = dot_product / (norm_course * norm_student)
+    
+    # التحويل من [-1, 1] إلى [0, 100] مع تقريب النتيجة
+    return round(((similarity + 1) / 2 * 100), 2)  # مثال: 75.50%
 
 
 def load_recommendation(user_id):
@@ -147,3 +163,52 @@ if not predicted_ratings.empty:
     print(f"🔹 مصفوفة التنبؤات:\n{predicted_ratings}")
 else:
     print("⚠️ لم يتم إنشاء مصفوفة التنبؤات بسبب نقص البيانات.")
+
+
+
+# وظيفة تحليل الدورات وإنشاء التوصيات
+def get_course_recommendations(course_id):
+    courses = Course.query.all()
+    print(f"****courses {courses}")
+# تحويل البيانات إلى DataFrame
+    df = pd.DataFrame([
+        {'id': c.id, 'course_name': c.course_name, 'category': c.category, 'difficulty_level': c.difficulty_level
+       
+          
+        }
+        for c in courses
+    ])
+    print(f"****courses {df}")
+
+    # التأكد من أن الدورة المطلوبة موجودة
+    if course_id not in df['id'].values:
+        return {"error": "Course ID not found"}
+
+    # استهداف الدورة المطلوبة
+    target_course = df[df['id'] == course_id].iloc[0]
+    print(f"****target_course {target_course}")
+    # البحث عن دورات ذات فئة وصعوبة مشابهة
+    similar_courses = df[
+        (df['category'] == target_course['category']) &
+        (df['difficulty_level'] == target_course['difficulty_level'])
+    ]
+    print(f"****similar_courses {similar_courses}")
+    # إزالة الدورة نفسها من النتائج
+    similar_courses = similar_courses[similar_courses['id'] != course_id]
+
+    # جلب أول دورتين مشابهتين
+    recommended_courses = [
+        {
+            "id": int(similar_courses.iloc[j]['id']),
+            "logo": Course.query.get(similar_courses.iloc[j]['id']).logo,
+            "instructor": Course.query.get(similar_courses.iloc[j]['id']).instructor,
+            "university": Course.query.get(similar_courses.iloc[j]['id']).university,
+            "category": Course.query.get(similar_courses.iloc[j]['id']).category,
+            "course_name": similar_courses.iloc[j]['course_name'],
+            "course_link": Course.query.get(similar_courses.iloc[j]['id']).course_link
+        }
+        for j in range(min(5, len(similar_courses)))
+    ]
+
+    return {"recommended_courses": recommended_courses}
+
